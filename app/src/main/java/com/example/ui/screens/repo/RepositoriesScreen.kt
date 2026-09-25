@@ -1,34 +1,49 @@
 package com.example.ui.screens.repo
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Sort
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.data.model.Repository
 import com.example.ui.components.EmptyStateView
 import com.example.ui.components.OfflineNoticeBanner
 import com.example.ui.components.RepoCardSkeleton
 import com.example.ui.components.RepositoryCard
-import com.example.ui.components.getLanguageColor
 import com.example.ui.viewmodel.PrimeRepoViewModel
-import com.example.utils.DateUtils
 
 enum class RepoFilter(val label: String) {
     ALL("All"),
@@ -38,7 +53,10 @@ enum class RepoFilter(val label: String) {
     ARCHIVED("Archived")
 }
 
-enum class RepoSort(val label: String, val apiValue: String) {
+enum class RepoSort(
+    val label: String,
+    val apiValue: String
+) {
     UPDATED("Updated", "updated"),
     NAME("Name", "full_name"),
     STARS("Stars", "stargazers_count")
@@ -55,16 +73,42 @@ fun RepositoriesScreen(
     val isLoading by viewModel.isLoadingRepos.collectAsState()
     val isOffline by viewModel.isOffline.collectAsState()
 
-    var searchQuery by remember { mutableStateOf("") }
-    var selectedFilter by remember { mutableStateOf(RepoFilter.ALL) }
-    var selectedSort by remember { mutableStateOf(RepoSort.UPDATED) }
-    var showSortMenu by remember { mutableStateOf(false) }
+    var searchQuery by remember {
+        mutableStateOf("")
+    }
 
-    val filteredRepos = remember(repos, searchQuery, selectedFilter, selectedSort) {
+    var selectedFilter by remember {
+        mutableStateOf(RepoFilter.ALL)
+    }
+
+    var selectedSort by remember {
+        mutableStateOf(RepoSort.UPDATED)
+    }
+
+    var showSortMenu by remember {
+        mutableStateOf(false)
+    }
+
+    val filteredRepos = remember(
+        repos,
+        searchQuery,
+        selectedFilter,
+        selectedSort
+    ) {
         var list = repos.filter { repo ->
-            val matchQuery = searchQuery.isBlank() ||
-                repo.name.contains(searchQuery, ignoreCase = true) ||
-                (repo.description?.contains(searchQuery, ignoreCase = true) == true)
+
+            val matchQuery =
+                searchQuery.isBlank() ||
+                    repo.name.contains(
+                        searchQuery,
+                        ignoreCase = true
+                    ) ||
+                    (
+                        repo.description?.contains(
+                            searchQuery,
+                            ignoreCase = true
+                        ) == true
+                    )
 
             val matchFilter = when (selectedFilter) {
                 RepoFilter.ALL -> true
@@ -73,139 +117,318 @@ fun RepositoriesScreen(
                 RepoFilter.FORKS -> repo.fork
                 RepoFilter.ARCHIVED -> repo.archived
             }
+
             matchQuery && matchFilter
         }
 
         when (selectedSort) {
-            RepoSort.UPDATED -> list.sortedByDescending { it.updated_at }
-            RepoSort.NAME -> list.sortedBy { it.name.lowercase() }
-            RepoSort.STARS -> list.sortedByDescending { it.stargazers_count }
+            RepoSort.UPDATED ->
+                list.sortedByDescending { it.updated_at }
+
+            RepoSort.NAME ->
+                list.sortedBy {
+                    it.name.lowercase()
+                }
+
+            RepoSort.STARS ->
+                list.sortedByDescending {
+                    it.stargazers_count
+                }
         }
     }
 
     Scaffold(
+        containerColor = androidx.compose.material3.MaterialTheme
+            .colorScheme
+            .background,
+
         topBar = {
             TopAppBar(
-                title = { Text("Repositories (${repos.size})", fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        text = "Repositories (${repos.size})",
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+
                 actions = {
-                    Box {
-                        IconButton(onClick = { showSortMenu = true }) {
-                            Icon(Icons.Outlined.Sort, contentDescription = "Sort repositories")
+                    androidx.compose.foundation.layout.Box {
+
+                        IconButton(
+                            onClick = {
+                                showSortMenu = true
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Sort,
+                                contentDescription = "Sort repositories"
+                            )
                         }
+
                         DropdownMenu(
                             expanded = showSortMenu,
-                            onDismissRequest = { showSortMenu = false }
+                            onDismissRequest = {
+                                showSortMenu = false
+                            }
                         ) {
                             RepoSort.values().forEach { sort ->
+
                                 DropdownMenuItem(
-                                    text = { Text("Sort by ${sort.label}") },
-                                    leadingIcon = {
-                                        if (selectedSort == sort) {
-                                            Icon(Icons.Outlined.Check, contentDescription = null)
-                                        }
+                                    text = {
+                                        Text(
+                                            text = "Sort by ${sort.label}"
+                                        )
                                     },
+
                                     onClick = {
                                         selectedSort = sort
                                         showSortMenu = false
-                                        viewModel.loadRepositories(sort = sort.apiValue)
+
+                                        viewModel.loadRepositories(
+                                            sort = sort.apiValue
+                                        )
                                     }
                                 )
                             }
                         }
                     }
-                    IconButton(onClick = { viewModel.loadRepositories() }) {
-                        Icon(Icons.Outlined.Refresh, contentDescription = "Refresh")
+
+                    IconButton(
+                        onClick = {
+                            viewModel.loadRepositories()
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Refresh,
+                            contentDescription = "Refresh"
+                        )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
+
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = androidx.compose.material3.MaterialTheme
+                        .colorScheme
+                        .background,
+
+                    scrolledContainerColor = androidx.compose.material3.MaterialTheme
+                        .colorScheme
+                        .background
+                )
             )
         },
+
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onCreateRepoClick,
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
+
+                modifier = Modifier.size(58.dp),
+
+                containerColor = androidx.compose.material3.MaterialTheme
+                    .colorScheme
+                    .primary,
+
+                contentColor = androidx.compose.material3.MaterialTheme
+                    .colorScheme
+                    .onPrimary
             ) {
-                Icon(Icons.Filled.Add, contentDescription = "New Repository")
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = "New Repository"
+                )
             }
         }
     ) { innerPadding ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            OfflineNoticeBanner(isOffline = isOffline)
 
-            // Search Bar
+            OfflineNoticeBanner(
+                isOffline = isOffline
+            )
+
             OutlinedTextField(
                 value = searchQuery,
-                onValueChange = { searchQuery = it },
+
+                onValueChange = {
+                    searchQuery = it
+                },
+
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 6.dp),
-                placeholder = { Text("Find a repository...") },
-                leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
+                    .padding(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = 8.dp,
+                        bottom = 6.dp
+                    ),
+
+                placeholder = {
+                    Text(
+                        text = "Find a repository..."
+                    )
+                },
+
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Outlined.Search,
+                        contentDescription = null
+                    )
+                },
+
                 trailingIcon = {
                     if (searchQuery.isNotEmpty()) {
-                        IconButton(onClick = { searchQuery = "" }) {
-                            Icon(Icons.Outlined.Close, contentDescription = "Clear")
+                        IconButton(
+                            onClick = {
+                                searchQuery = ""
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Close,
+                                contentDescription = "Clear"
+                            )
                         }
                     }
                 },
+
                 singleLine = true,
-                shape = RoundedCornerShape(10.dp)
+
+                shape = RoundedCornerShape(14.dp)
             )
 
-            // Filter Chips
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 6.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    .padding(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = 4.dp,
+                        bottom = 8.dp
+                    ),
+
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+
+                contentPadding = PaddingValues(
+                    horizontal = 2.dp
+                )
             ) {
-                items(RepoFilter.values()) { filter ->
+                items(
+                    RepoFilter.values().toList()
+                ) { filter ->
+
                     FilterChip(
                         selected = selectedFilter == filter,
-                        onClick = { selectedFilter = filter },
-                        label = { Text(filter.label) }
+
+                        onClick = {
+                            selectedFilter = filter
+                        },
+
+                        label = {
+                            Text(
+                                text = filter.label
+                            )
+                        },
+
+                        shape = RoundedCornerShape(12.dp)
                     )
                 }
             }
 
-            // Repository List
-            if (isLoading && repos.isEmpty()) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    items(5) {
-                        RepoCardSkeleton()
+            when {
+
+                isLoading && repos.isEmpty() -> {
+
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+
+                        contentPadding = PaddingValues(
+                            start = 16.dp,
+                            end = 16.dp,
+                            top = 8.dp,
+                            bottom = 100.dp
+                        ),
+
+                        verticalArrangement = Arrangement.spacedBy(
+                            10.dp
+                        )
+                    ) {
+                        items(5) {
+                            RepoCardSkeleton()
+                        }
                     }
                 }
-            } else if (filteredRepos.isEmpty()) {
-                EmptyStateView(
-                    icon = Icons.Outlined.FolderOff,
-                    title = if (searchQuery.isNotBlank()) "No repositories found" else "No repositories yet",
-                    description = if (searchQuery.isNotBlank()) "No matching repositories for \"$searchQuery\"." else "Create your first repository using the + button.",
-                    actionButtonText = if (searchQuery.isBlank()) "Create Repository" else null,
-                    onActionClick = onCreateRepoClick
-                )
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    items(filteredRepos, key = { it.id }) { repo ->
-                        RepositoryCard(
-                            repo = repo,
-                            onClick = {
-                                val owner = repo.owner?.login ?: "user"
-                                onRepoClick(owner, repo.name)
-                            }
+
+                filteredRepos.isEmpty() -> {
+
+                    EmptyStateView(
+                        icon = Icons.Outlined.FolderOff,
+
+                        title = if (
+                            searchQuery.isNotBlank()
+                        ) {
+                            "No repositories found"
+                        } else {
+                            "No repositories yet"
+                        },
+
+                        description = if (
+                            searchQuery.isNotBlank()
+                        ) {
+                            "No matching repositories for \"$searchQuery\"."
+                        } else {
+                            "Create your first repository using the + button."
+                        },
+
+                        actionButtonText = if (
+                            searchQuery.isBlank()
+                        ) {
+                            "Create Repository"
+                        } else {
+                            null
+                        },
+
+                        onActionClick = onCreateRepoClick
+                    )
+                }
+
+                else -> {
+
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+
+                        contentPadding = PaddingValues(
+                            start = 16.dp,
+                            end = 16.dp,
+                            top = 4.dp,
+                            bottom = 100.dp
+                        ),
+
+                        verticalArrangement = Arrangement.spacedBy(
+                            10.dp
                         )
+                    ) {
+
+                        items(
+                            filteredRepos,
+                            key = { it.id }
+                        ) { repo ->
+
+                            RepositoryCard(
+                                repo = repo,
+
+                                onClick = {
+                                    val owner =
+                                        repo.owner?.login ?: "user"
+
+                                    onRepoClick(
+                                        owner,
+                                        repo.name
+                                    )
+                                }
+                            )
+                        }
                     }
                 }
             }
