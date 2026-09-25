@@ -2,41 +2,45 @@ package com.example.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// GitHub Dark Palette
-val GitHubDarkBg = Color(0xFF0D1117)
-val GitHubDarkSurface = Color(0xFF161B22)
-val GitHubDarkSurfaceVariant = Color(0xFF21262D)
-val GitHubDarkBorder = Color(0xFF30363D)
-val GitHubDarkText = Color(0xFFE6EDF3)
-val GitHubDarkTextMuted = Color(0xFF8B949E)
-val GitHubDarkPrimary = Color(0xFF58A6FF)
-val GitHubDarkGreen = Color(0xFF238636)
-val GitHubDarkOrange = Color(0xFFD29922)
-val GitHubDarkRed = Color(0xFFF85149)
-val GitHubDarkPurple = Color(0xFFA371F7)
+// Primary purple
+val PurplePrimary = Color(0xFF8B5CF6)
+val PurpleLight = Color(0xFFA78BFA)
+val PurpleDark = Color(0xFF7C3AED)
 
-// GitHub Light Palette
-val GitHubLightBg = Color(0xFFF6F8FA)
-val GitHubLightSurface = Color(0xFFFFFFFF)
-val GitHubLightSurfaceVariant = Color(0xFFF0F2F5)
-val GitHubLightBorder = Color(0xFFD0D7DE)
-val GitHubLightText = Color(0xFF1F2328)
-val GitHubLightTextMuted = Color(0xFF656D76)
-val GitHubLightPrimary = Color(0xFF0969DA)
-val GitHubLightGreen = Color(0xFF1A7F37)
-val GitHubLightOrange = Color(0xFF9A6700)
-val GitHubLightRed = Color(0xFFCF222E)
-val GitHubLightPurple = Color(0xFF8250DF)
+// App background
+val AppBackground = Color(0xFF151419)
 
-// Heatmap greens (from level 0 to level 4)
-val HeatmapLevel0Dark = Color(0xFF161B22)
-val HeatmapLevel1Dark = Color(0xFF0E4429)
-val HeatmapLevel2Dark = Color(0xFF006D32)
-val HeatmapLevel3Dark = Color(0xFF26A641)
-val HeatmapLevel4Dark = Color(0xFF39D353)
+// Cards / surfaces
+val AppSurface = Color(0xFF211F26)
+val AppSurfaceVariant = Color(0xFF2A2730)
+val AppSurfaceElevated = Color(0xFF302C36)
 
-val HeatmapLevel0Light = Color(0xFFEBEDF0)
-val HeatmapLevel1Light = Color(0xFF9BE9A8)
-val HeatmapLevel2Light = Color(0xFF40C463)
-val HeatmapLevel3Light = Color(0xFF30A14E)
-val HeatmapLevel4Light = Color(0xFF216E39)
+// Text
+val TextPrimary = Color(0xFFF5F3F7)
+val TextSecondary = Color(0xFFA8A5AE)
+val TextMuted = Color(0xFF77737D)
+
+// Navigation
+val NavigationBackground = Color(0xFF211F26)
+val NavigationSelected = Color(0xFF5A506F)
+val NavigationIcon = Color(0xFFF5EEFF)
+val NavigationUnselected = Color(0xFFA8A5AE)
+
+// Status colors
+val SuccessGreen = Color(0xFF39D353)
+val InfoBlue = Color(0xFF58A6FF)
+val WarningOrange = Color(0xFFF2CC60)
+val ErrorRed = Color(0xFFF85149)
+
+// GitHub-style colors
+val GitHubGreen = Color(0xFF39D353)
+val GitHubBlue = Color(0xFF58A6FF)
+val GitHubPurple = Color(0xFFA371F7)
+
+// Divider / border
+val AppDivider = Color(0xFF35323A)
+val AppBorder = Color(0xFF3A3640)
+
+// White / black
+val PureWhite = Color(0xFFFFFFFF)
+val PureBlack = Color(0xFF000000)
