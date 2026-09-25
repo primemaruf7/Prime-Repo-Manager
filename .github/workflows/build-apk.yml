@@ -30,20 +30,25 @@ jobs:
         with:
           packages: 'platform-tools platforms;android-36.1 build-tools;36.1.0'
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.3.1'
+
+      - name: Show Gradle version
+        run: gradle --version
+
       - name: Show Android SDK
         run: |
           echo "ANDROID_HOME=$ANDROID_HOME"
           echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
           sdkmanager --list_installed
 
-      - name: Make Gradle executable
-        run: chmod +x ./gradlew
-
       - name: Clean project
-        run: ./gradlew clean --no-daemon
+        run: gradle clean --no-daemon
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+        run: gradle assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
