@@ -11,10 +11,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.FolderOff
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Sort
@@ -25,6 +27,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -95,20 +98,18 @@ fun RepositoriesScreen(
         selectedFilter,
         selectedSort
     ) {
-        var list = repos.filter { repo ->
+        val query = searchQuery.trim()
 
-            val matchQuery =
-                searchQuery.isBlank() ||
-                    repo.name.contains(
-                        searchQuery,
-                        ignoreCase = true
-                    ) ||
-                    (
-                        repo.description?.contains(
-                            searchQuery,
-                            ignoreCase = true
-                        ) == true
-                    )
+        val filtered = repos.filter { repo ->
+            val matchQuery = query.isBlank() ||
+                repo.name.contains(
+                    query,
+                    ignoreCase = true
+                ) ||
+                repo.description?.contains(
+                    query,
+                    ignoreCase = true
+                ) == true
 
             val matchFilter = when (selectedFilter) {
                 RepoFilter.ALL -> true
@@ -122,25 +123,30 @@ fun RepositoriesScreen(
         }
 
         when (selectedSort) {
-            RepoSort.UPDATED ->
-                list.sortedByDescending { it.updated_at }
+            RepoSort.UPDATED -> {
+                filtered.sortedByDescending {
+                    it.updated_at
+                }
+            }
 
-            RepoSort.NAME ->
-                list.sortedBy {
+            RepoSort.NAME -> {
+                filtered.sortedBy {
                     it.name.lowercase()
                 }
+            }
 
-            RepoSort.STARS ->
-                list.sortedByDescending {
+            RepoSort.STARS -> {
+                filtered.sortedByDescending {
                     it.stargazers_count
                 }
+            }
         }
     }
 
+    val backgroundColor = MaterialTheme.colorScheme.background
+
     Scaffold(
-        containerColor = androidx.compose.material3.MaterialTheme
-            .colorScheme
-            .background,
+        containerColor = backgroundColor,
 
         topBar = {
             TopAppBar(
@@ -153,7 +159,6 @@ fun RepositoriesScreen(
 
                 actions = {
                     androidx.compose.foundation.layout.Box {
-
                         IconButton(
                             onClick = {
                                 showSortMenu = true
@@ -171,15 +176,13 @@ fun RepositoriesScreen(
                                 showSortMenu = false
                             }
                         ) {
-                            RepoSort.values().forEach { sort ->
-
+                            RepoSort.entries.forEach { sort ->
                                 DropdownMenuItem(
                                     text = {
                                         Text(
                                             text = "Sort by ${sort.label}"
                                         )
                                     },
-
                                     onClick = {
                                         selectedSort = sort
                                         showSortMenu = false
@@ -206,13 +209,8 @@ fun RepositoriesScreen(
                 },
 
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = androidx.compose.material3.MaterialTheme
-                        .colorScheme
-                        .background,
-
-                    scrolledContainerColor = androidx.compose.material3.MaterialTheme
-                        .colorScheme
-                        .background
+                    containerColor = backgroundColor,
+                    scrolledContainerColor = backgroundColor
                 )
             )
         },
@@ -220,16 +218,9 @@ fun RepositoriesScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onCreateRepoClick,
-
                 modifier = Modifier.size(58.dp),
-
-                containerColor = androidx.compose.material3.MaterialTheme
-                    .colorScheme
-                    .primary,
-
-                contentColor = androidx.compose.material3.MaterialTheme
-                    .colorScheme
-                    .onPrimary
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
                 Icon(
                     imageVector = Icons.Filled.Add,
@@ -266,9 +257,7 @@ fun RepositoriesScreen(
                     ),
 
                 placeholder = {
-                    Text(
-                        text = "Find a repository..."
-                    )
+                    Text("Find a repository...")
                 },
 
                 leadingIcon = {
@@ -315,7 +304,9 @@ fun RepositoriesScreen(
                 )
             ) {
                 items(
-                    RepoFilter.values().toList()
+                    items = RepoFilter.entries,
+                    key = { it.name },
+                    contentType = { "filter" }
                 ) { filter ->
 
                     FilterChip(
@@ -326,9 +317,7 @@ fun RepositoriesScreen(
                         },
 
                         label = {
-                            Text(
-                                text = filter.label
-                            )
+                            Text(filter.label)
                         },
 
                         shape = RoundedCornerShape(12.dp)
@@ -354,7 +343,11 @@ fun RepositoriesScreen(
                             10.dp
                         )
                     ) {
-                        items(5) {
+                        items(
+                            count = 5,
+                            key = { it },
+                            contentType = { "skeleton" }
+                        ) {
                             RepoCardSkeleton()
                         }
                     }
@@ -365,25 +358,19 @@ fun RepositoriesScreen(
                     EmptyStateView(
                         icon = Icons.Outlined.FolderOff,
 
-                        title = if (
-                            searchQuery.isNotBlank()
-                        ) {
+                        title = if (searchQuery.isNotBlank()) {
                             "No repositories found"
                         } else {
                             "No repositories yet"
                         },
 
-                        description = if (
-                            searchQuery.isNotBlank()
-                        ) {
+                        description = if (searchQuery.isNotBlank()) {
                             "No matching repositories for \"$searchQuery\"."
                         } else {
                             "Create your first repository using the + button."
                         },
 
-                        actionButtonText = if (
-                            searchQuery.isBlank()
-                        ) {
+                        actionButtonText = if (searchQuery.isBlank()) {
                             "Create Repository"
                         } else {
                             null
@@ -409,10 +396,10 @@ fun RepositoriesScreen(
                             10.dp
                         )
                     ) {
-
                         items(
-                            filteredRepos,
-                            key = { it.id }
+                            items = filteredRepos,
+                            key = { repo -> repo.id },
+                            contentType = { "repository" }
                         ) { repo ->
 
                             RepositoryCard(
