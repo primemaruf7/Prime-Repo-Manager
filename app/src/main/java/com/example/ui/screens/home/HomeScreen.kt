@@ -40,75 +40,130 @@ fun HomeScreen(
     val repos by viewModel.userRepos.collectAsState()
     val rateLimit by viewModel.rateLimit.collectAsState()
 
-    val totalStars = remember(repos) { repos.sumOf { it.stargazers_count } }
-    val totalForks = remember(repos) { repos.sumOf { it.forks_count } }
-    val openIssues = remember(repos) { repos.sumOf { it.open_issues_count } }
+    val totalStars = remember(repos) {
+        repos.sumOf { it.stargazers_count }
+    }
+
+    val totalForks = remember(repos) {
+        repos.sumOf { it.forks_count }
+    }
+
+    val openIssues = remember(repos) {
+        repos.sumOf { it.open_issues_count }
+    }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+
         topBar = {
             TopAppBar(
                 title = {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        PrimeRepoLogo(size = 28.dp)
+                        PrimeRepoLogo(size = 32.dp)
+
                         Text(
                             text = "Prime Repo",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
+
                 actions = {
-                    IconButton(onClick = onNavigateToNotifications) {
-                        Icon(Icons.Outlined.Notifications, contentDescription = "Notifications")
+                    IconButton(
+                        onClick = onNavigateToNotifications
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Notifications,
+                            contentDescription = "Notifications",
+                            modifier = Modifier.size(27.dp),
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
                     }
-                    IconButton(onClick = onNavigateToSettings) {
-                        Icon(Icons.Outlined.Settings, contentDescription = "Settings")
+
+                    IconButton(
+                        onClick = onNavigateToSettings
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Settings,
+                            contentDescription = "Settings",
+                            modifier = Modifier.size(27.dp),
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
                     }
                 },
+
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
+                    containerColor = MaterialTheme.colorScheme.background,
+                    scrolledContainerColor = MaterialTheme.colorScheme.background
                 )
             )
         }
     ) { innerPadding ->
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                top = 8.dp,
+                bottom = 24.dp
+            ),
+
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
+
             item {
-                OfflineNoticeBanner(isOffline = isOffline)
+                OfflineNoticeBanner(
+                    isOffline = isOffline
+                )
             }
 
-            // User Profile Header Card
             item {
                 if (currentUser != null) {
-                    UserProfileHeaderCard(user = currentUser!!)
+                    UserProfileHeaderCard(
+                        user = currentUser!!
+                    )
                 } else {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        ),
+                        border = CardDefaults.outlinedCardBorder()
                     ) {
-                        Box(modifier = Modifier.padding(24.dp).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(190.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
                             CircularProgressIndicator()
                         }
                     }
                 }
             }
 
-            // Quick Actions
             item {
                 Text(
                     text = "Quick Actions",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(top = 2.dp)
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+
+                Spacer(
+                    modifier = Modifier.height(8.dp)
+                )
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -119,18 +174,21 @@ fun HomeScreen(
                         modifier = Modifier.weight(1f),
                         onClick = onNavigateToCreateRepo
                     )
+
                     QuickActionButton(
                         icon = Icons.Outlined.Code,
                         label = "New Gist",
                         modifier = Modifier.weight(1f),
                         onClick = onNavigateToGists
                     )
+
                     QuickActionButton(
                         icon = Icons.Outlined.Search,
                         label = "Search",
                         modifier = Modifier.weight(1f),
                         onClick = onNavigateToSearch
                     )
+
                     QuickActionButton(
                         icon = Icons.Outlined.Notifications,
                         label = "Alerts",
@@ -140,48 +198,57 @@ fun HomeScreen(
                 }
             }
 
-            // Statistics Grid
             item {
                 Text(
                     text = "Overview Statistics",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(top = 2.dp)
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+
+                Spacer(
+                    modifier = Modifier.height(8.dp)
+                )
+
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         StatCard(
                             title = "Repositories",
-                            value = "${repos.size}",
+                            value = repos.size.toString(),
                             icon = Icons.Outlined.Folder,
-                            color = MaterialTheme.colorScheme.primary,
+                            color = Color(0xFF58A6FF),
                             modifier = Modifier.weight(1f)
                         )
+
                         StatCard(
                             title = "Stars Received",
-                            value = "$totalStars",
+                            value = totalStars.toString(),
                             icon = Icons.Outlined.StarOutline,
                             color = Color(0xFFD29922),
                             modifier = Modifier.weight(1f)
                         )
                     }
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         StatCard(
                             title = "Forks",
-                            value = "$totalForks",
+                            value = totalForks.toString(),
                             icon = Icons.Outlined.ForkRight,
                             color = Color(0xFFA371F7),
                             modifier = Modifier.weight(1f)
                         )
+
                         StatCard(
                             title = "Open Issues",
-                            value = "$openIssues",
+                            value = openIssues.toString(),
                             icon = Icons.Outlined.Adjust,
                             color = Color(0xFF39D353),
                             modifier = Modifier.weight(1f)
@@ -190,7 +257,6 @@ fun HomeScreen(
                 }
             }
 
-            // Contribution Heatmap
             item {
                 ContributionHeatmap(
                     totalCommitsEstimate = 120 + repos.size * 8,
@@ -198,92 +264,163 @@ fun HomeScreen(
                 )
             }
 
-            // Rate Limit
             item {
-                RateLimitCard(info = rateLimit)
+                RateLimitCard(
+                    info = rateLimit
+                )
             }
         }
     }
 }
 
 @Composable
-fun UserProfileHeaderCard(user: GitHubUser) {
+fun UserProfileHeaderCard(
+    user: GitHubUser
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+
+        shape = RoundedCornerShape(16.dp),
+
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+
         border = CardDefaults.outlinedCardBorder()
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+
             Row(
+                modifier = Modifier.fillMaxWidth(),
+
                 verticalAlignment = Alignment.CenterVertically,
+
                 horizontalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 AsyncImage(
                     model = user.avatar_url,
+
                     contentDescription = "Avatar of ${user.login}",
+
                     modifier = Modifier
-                        .size(64.dp)
+                        .size(70.dp)
                         .clip(CircleShape)
-                        .border(1.5.dp, MaterialTheme.colorScheme.primary, CircleShape),
+                        .border(
+                            width = 2.dp,
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = CircleShape
+                        ),
+
                     contentScale = ContentScale.Crop
                 )
 
-                Column(modifier = Modifier.weight(1f)) {
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
                     Text(
                         text = user.name ?: user.login,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+
+                        fontSize = 20.sp,
+
+                        fontWeight = FontWeight.Bold,
+
+                        color = MaterialTheme.colorScheme.onSurface
                     )
+
                     Text(
                         text = "@${user.login}",
-                        style = MaterialTheme.typography.bodySmall,
+
+                        fontSize = 14.sp,
+
                         color = MaterialTheme.colorScheme.primary
                     )
-                    if (!user.bio.isNullOrBlank()) {
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = user.bio,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 2
-                        )
-                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(14.dp))
-            HorizontalDivider(thickness = 0.5.dp)
-            Spacer(modifier = Modifier.height(12.dp))
+            if (!user.bio.isNullOrBlank()) {
+                Spacer(
+                    modifier = Modifier.height(10.dp)
+                )
+
+                Text(
+                    text = user.bio,
+
+                    style = MaterialTheme.typography.bodyMedium,
+
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+
+                    maxLines = 2
+                )
+            }
+
+            Spacer(
+                modifier = Modifier.height(14.dp)
+            )
+
+            HorizontalDivider(
+                thickness = 0.5.dp,
+
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
+
+            Spacer(
+                modifier = Modifier.height(12.dp)
+            )
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
+
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
-                UserMiniMetric(label = "Followers", count = user.followers)
-                UserMiniMetric(label = "Following", count = user.following)
-                UserMiniMetric(label = "Public Repos", count = user.public_repos)
-                if (user.total_private_repos > 0) {
-                    UserMiniMetric(label = "Private Repos", count = user.total_private_repos)
-                }
+                UserMiniMetric(
+                    label = "Followers",
+                    count = user.followers
+                )
+
+                UserMiniMetric(
+                    label = "Following",
+                    count = user.following
+                )
+
+                UserMiniMetric(
+                    label = "Public Repos",
+                    count = user.public_repos
+                )
             }
         }
     }
 }
 
 @Composable
-fun UserMiniMetric(label: String, count: Int) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+fun UserMiniMetric(
+    label: String,
+    count: Int
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Text(
-            text = "$count",
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Bold
+            text = count.toString(),
+
+            fontSize = 17.sp,
+
+            fontWeight = FontWeight.Bold,
+
+            color = MaterialTheme.colorScheme.onSurface
         )
+
+        Spacer(
+            modifier = Modifier.height(2.dp)
+        )
+
         Text(
             text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontSize = 11.sp
+
+            fontSize = 11.sp,
+
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -296,27 +433,48 @@ fun QuickActionButton(
     onClick: () -> Unit
 ) {
     Card(
-        modifier = modifier.clickable { onClick() },
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        modifier = modifier
+            .height(96.dp)
+            .clickable { onClick() },
+
+        shape = RoundedCornerShape(14.dp),
+
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+
         border = CardDefaults.outlinedCardBorder()
     ) {
         Column(
-            modifier = Modifier.padding(vertical = 12.dp, horizontal = 4.dp).fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 4.dp),
+
             horizontalAlignment = Alignment.CenterHorizontally,
+
             verticalArrangement = Arrangement.Center
         ) {
             Icon(
                 imageVector = icon,
+
                 contentDescription = label,
+
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(22.dp)
+
+                modifier = Modifier.size(27.dp)
             )
-            Spacer(modifier = Modifier.height(6.dp))
+
+            Spacer(
+                modifier = Modifier.height(7.dp)
+            )
+
             Text(
                 text = label,
-                style = MaterialTheme.typography.labelMedium,
+
+                fontSize = 13.sp,
+
                 fontWeight = FontWeight.Medium,
+
                 maxLines = 1
             )
         }
@@ -332,34 +490,63 @@ fun StatCard(
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        modifier = modifier
+            .height(94.dp),
+
+        shape = RoundedCornerShape(14.dp),
+
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+
         border = CardDefaults.outlinedCardBorder()
     ) {
         Row(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+
             verticalAlignment = Alignment.CenterVertically,
+
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Box(
                 modifier = Modifier
-                    .size(36.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(color.copy(alpha = 0.15f)),
+                    .size(42.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(
+                        color.copy(alpha = 0.15f)
+                    ),
+
                 contentAlignment = Alignment.Center
             ) {
-                Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(20.dp))
+                Icon(
+                    imageVector = icon,
+
+                    contentDescription = null,
+
+                    tint = color,
+
+                    modifier = Modifier.size(24.dp)
+                )
             }
+
             Column {
                 Text(
                     text = value,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+
+                    fontSize = 18.sp,
+
+                    fontWeight = FontWeight.Bold,
+
+                    color = MaterialTheme.colorScheme.onSurface
                 )
+
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.bodySmall,
+
+                    fontSize = 12.sp,
+
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
