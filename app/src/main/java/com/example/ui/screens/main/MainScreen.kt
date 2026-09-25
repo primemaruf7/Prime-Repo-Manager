@@ -15,6 +15,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -59,11 +60,10 @@ fun MainScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-
         bottomBar = {
             NavigationBar(
                 containerColor = BottomBarBackground,
-                tonalElevation = androidx.compose.ui.unit.Dp.Zero
+                tonalElevation = 0.dp
             ) {
                 BottomTab.values().forEach { tab ->
 
@@ -126,15 +126,14 @@ fun MainScreen(
                         },
 
                         label = {
-                            Text(
-                                text = tab.title
-                            )
+                            Text(text = tab.title)
                         },
 
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = SelectedIcon,
                             selectedTextColor = SelectedIcon,
-                            selectedIndicatorColor = SelectedPill,
+
+                            indicatorColor = SelectedPill,
 
                             unselectedIconColor = UnselectedIcon,
                             unselectedTextColor = UnselectedText,
@@ -151,7 +150,6 @@ fun MainScreen(
         NavHost(
             navController = bottomNavController,
             startDestination = BottomTab.HOME.route,
-
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
@@ -160,11 +158,8 @@ fun MainScreen(
             composable(BottomTab.HOME.route) {
                 HomeScreen(
                     viewModel = viewModel,
-
                     onNavigateToCreateRepo = onNavigateToCreateRepo,
-
                     onNavigateToGists = onNavigateToGists,
-
                     onNavigateToSearch = {
                         bottomNavController.navigate(
                             BottomTab.SEARCH.route
@@ -182,7 +177,6 @@ fun MainScreen(
                             restoreState = true
                         }
                     },
-
                     onNavigateToNotifications = {
                         bottomNavController.navigate(
                             BottomTab.NOTIFICATIONS.route
@@ -200,7 +194,6 @@ fun MainScreen(
                             restoreState = true
                         }
                     },
-
                     onNavigateToSettings = onNavigateToSettings
                 )
             }
@@ -208,9 +201,7 @@ fun MainScreen(
             composable(BottomTab.REPOSITORIES.route) {
                 RepositoriesScreen(
                     viewModel = viewModel,
-
                     onRepoClick = onNavigateToRepoDetail,
-
                     onCreateRepoClick = onNavigateToCreateRepo
                 )
             }
@@ -218,7 +209,6 @@ fun MainScreen(
             composable(BottomTab.NOTIFICATIONS.route) {
                 NotificationsScreen(
                     viewModel = viewModel,
-
                     onRepoClick = onNavigateToRepoDetail
                 )
             }
@@ -226,9 +216,7 @@ fun MainScreen(
             composable(BottomTab.SEARCH.route) {
                 SearchScreen(
                     viewModel = viewModel,
-
                     onRepoClick = onNavigateToRepoDetail,
-
                     onUserClick = onNavigateToUserProfile
                 )
             }
@@ -237,13 +225,9 @@ fun MainScreen(
                 UserProfileScreen(
                     username = "",
                     viewModel = viewModel,
-
                     onBack = null,
-
                     onEditProfileClick = onNavigateToEditProfile,
-
                     onRepoClick = onNavigateToRepoDetail,
-
                     onNavigateToSettings = onNavigateToSettings
                 )
             }
