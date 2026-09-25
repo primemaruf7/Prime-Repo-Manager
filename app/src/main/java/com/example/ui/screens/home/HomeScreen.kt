@@ -52,8 +52,18 @@ fun HomeScreen(
         repos.sumOf { it.open_issues_count }
     }
 
+    val contributionSeed = remember(currentUser?.login) {
+        currentUser?.login ?: "seed"
+    }
+
+    val estimatedContributions = remember(repos.size) {
+        120 + repos.size * 8
+    }
+
+    val backgroundColor = MaterialTheme.colorScheme.background
+
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = backgroundColor,
 
         topBar = {
             TopAppBar(
@@ -62,7 +72,9 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        PrimeRepoLogo(size = 32.dp)
+                        PrimeRepoLogo(
+                            size = 32.dp
+                        )
 
                         Text(
                             text = "Prime Repo",
@@ -78,10 +90,13 @@ fun HomeScreen(
                         onClick = onNavigateToNotifications
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.Notifications,
-                            contentDescription = "Notifications",
+                            imageVector =
+                                Icons.Outlined.Notifications,
+                            contentDescription =
+                                "Notifications",
                             modifier = Modifier.size(27.dp),
-                            tint = MaterialTheme.colorScheme.onBackground
+                            tint =
+                                MaterialTheme.colorScheme.onBackground
                         )
                     }
 
@@ -89,17 +104,20 @@ fun HomeScreen(
                         onClick = onNavigateToSettings
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.Settings,
-                            contentDescription = "Settings",
+                            imageVector =
+                                Icons.Outlined.Settings,
+                            contentDescription =
+                                "Settings",
                             modifier = Modifier.size(27.dp),
-                            tint = MaterialTheme.colorScheme.onBackground
+                            tint =
+                                MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
 
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    scrolledContainerColor = MaterialTheme.colorScheme.background
+                    containerColor = backgroundColor,
+                    scrolledContainerColor = backgroundColor
                 )
             )
         }
@@ -117,34 +135,52 @@ fun HomeScreen(
                 bottom = 24.dp
             ),
 
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+            verticalArrangement =
+                Arrangement.spacedBy(14.dp)
         ) {
 
-            item {
+            item(
+                key = "offline_banner",
+                contentType = "offline_banner"
+            ) {
                 OfflineNoticeBanner(
                     isOffline = isOffline
                 )
             }
 
-            item {
+            item(
+                key = "profile_header",
+                contentType = "profile_header"
+            ) {
                 if (currentUser != null) {
+
                     UserProfileHeaderCard(
                         user = currentUser!!
                     )
+
                 } else {
+
                     Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface
-                        ),
-                        border = CardDefaults.outlinedCardBorder()
+                        modifier =
+                            Modifier.fillMaxWidth(),
+                        shape =
+                            RoundedCornerShape(16.dp),
+                        colors =
+                            CardDefaults.cardColors(
+                                containerColor =
+                                    MaterialTheme
+                                        .colorScheme
+                                        .surface
+                            ),
+                        border =
+                            CardDefaults.outlinedCardBorder()
                     ) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(190.dp),
-                            contentAlignment = Alignment.Center
+                            contentAlignment =
+                                Alignment.Center
                         ) {
                             CircularProgressIndicator()
                         }
@@ -152,12 +188,20 @@ fun HomeScreen(
                 }
             }
 
-            item {
+            item(
+                key = "quick_actions",
+                contentType = "quick_actions"
+            ) {
                 Text(
                     text = "Quick Actions",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(top = 2.dp)
+                    style =
+                        MaterialTheme
+                            .typography
+                            .titleMedium,
+                    fontWeight =
+                        FontWeight.SemiBold,
+                    modifier =
+                        Modifier.padding(top = 2.dp)
                 )
 
                 Spacer(
@@ -166,44 +210,62 @@ fun HomeScreen(
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement =
+                        Arrangement.spacedBy(8.dp)
                 ) {
                     QuickActionButton(
                         icon = Icons.Outlined.AddBox,
                         label = "New Repo",
-                        modifier = Modifier.weight(1f),
-                        onClick = onNavigateToCreateRepo
+                        modifier =
+                            Modifier.weight(1f),
+                        onClick =
+                            onNavigateToCreateRepo
                     )
 
                     QuickActionButton(
                         icon = Icons.Outlined.Code,
                         label = "New Gist",
-                        modifier = Modifier.weight(1f),
-                        onClick = onNavigateToGists
+                        modifier =
+                            Modifier.weight(1f),
+                        onClick =
+                            onNavigateToGists
                     )
 
                     QuickActionButton(
                         icon = Icons.Outlined.Search,
                         label = "Search",
-                        modifier = Modifier.weight(1f),
-                        onClick = onNavigateToSearch
+                        modifier =
+                            Modifier.weight(1f),
+                        onClick =
+                            onNavigateToSearch
                     )
 
                     QuickActionButton(
-                        icon = Icons.Outlined.Notifications,
+                        icon =
+                            Icons.Outlined.Notifications,
                         label = "Alerts",
-                        modifier = Modifier.weight(1f),
-                        onClick = onNavigateToNotifications
+                        modifier =
+                            Modifier.weight(1f),
+                        onClick =
+                            onNavigateToNotifications
                     )
                 }
             }
 
-            item {
+            item(
+                key = "overview_statistics",
+                contentType = "overview_statistics"
+            ) {
                 Text(
                     text = "Overview Statistics",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(top = 2.dp)
+                    style =
+                        MaterialTheme
+                            .typography
+                            .titleMedium,
+                    fontWeight =
+                        FontWeight.SemiBold,
+                    modifier =
+                        Modifier.padding(top = 2.dp)
                 )
 
                 Spacer(
@@ -211,60 +273,89 @@ fun HomeScreen(
                 )
 
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement =
+                        Arrangement.spacedBy(8.dp)
                 ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier =
+                            Modifier.fillMaxWidth(),
+                        horizontalArrangement =
+                            Arrangement.spacedBy(8.dp)
                     ) {
                         StatCard(
                             title = "Repositories",
-                            value = repos.size.toString(),
-                            icon = Icons.Outlined.Folder,
-                            color = Color(0xFF58A6FF),
-                            modifier = Modifier.weight(1f)
+                            value =
+                                repos.size.toString(),
+                            icon =
+                                Icons.Outlined.Folder,
+                            color =
+                                Color(0xFF58A6FF),
+                            modifier =
+                                Modifier.weight(1f)
                         )
 
                         StatCard(
                             title = "Stars Received",
-                            value = totalStars.toString(),
-                            icon = Icons.Outlined.StarOutline,
-                            color = Color(0xFFD29922),
-                            modifier = Modifier.weight(1f)
+                            value =
+                                totalStars.toString(),
+                            icon =
+                                Icons.Outlined.StarOutline,
+                            color =
+                                Color(0xFFD29922),
+                            modifier =
+                                Modifier.weight(1f)
                         )
                     }
 
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier =
+                            Modifier.fillMaxWidth(),
+                        horizontalArrangement =
+                            Arrangement.spacedBy(8.dp)
                     ) {
                         StatCard(
                             title = "Forks",
-                            value = totalForks.toString(),
-                            icon = Icons.Outlined.ForkRight,
-                            color = Color(0xFFA371F7),
-                            modifier = Modifier.weight(1f)
+                            value =
+                                totalForks.toString(),
+                            icon =
+                                Icons.Outlined.ForkRight,
+                            color =
+                                Color(0xFFA371F7),
+                            modifier =
+                                Modifier.weight(1f)
                         )
 
                         StatCard(
                             title = "Open Issues",
-                            value = openIssues.toString(),
-                            icon = Icons.Outlined.Adjust,
-                            color = Color(0xFF39D353),
-                            modifier = Modifier.weight(1f)
+                            value =
+                                openIssues.toString(),
+                            icon =
+                                Icons.Outlined.Adjust,
+                            color =
+                                Color(0xFF39D353),
+                            modifier =
+                                Modifier.weight(1f)
                         )
                     }
                 }
             }
 
-            item {
+            item(
+                key = "contribution_heatmap",
+                contentType = "contribution_heatmap"
+            ) {
                 ContributionHeatmap(
-                    totalCommitsEstimate = 120 + repos.size * 8,
-                    userSeed = currentUser?.login ?: "seed"
+                    totalCommitsEstimate =
+                        estimatedContributions,
+                    userSeed =
+                        contributionSeed
                 )
             }
 
-            item {
+            item(
+                key = "rate_limit",
+                contentType = "rate_limit"
+            ) {
                 RateLimitCard(
                     info = rateLimit
                 )
@@ -283,10 +374,12 @@ fun UserProfileHeaderCard(
         shape = RoundedCornerShape(16.dp),
 
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor =
+                MaterialTheme.colorScheme.surface
         ),
 
-        border = CardDefaults.outlinedCardBorder()
+        border =
+            CardDefaults.outlinedCardBorder()
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -294,47 +387,52 @@ fun UserProfileHeaderCard(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-
-                verticalAlignment = Alignment.CenterVertically,
-
-                horizontalArrangement = Arrangement.spacedBy(14.dp)
+                verticalAlignment =
+                    Alignment.CenterVertically,
+                horizontalArrangement =
+                    Arrangement.spacedBy(14.dp)
             ) {
                 AsyncImage(
                     model = user.avatar_url,
-
-                    contentDescription = "Avatar of ${user.login}",
-
+                    contentDescription =
+                        "Avatar of ${user.login}",
                     modifier = Modifier
                         .size(70.dp)
                         .clip(CircleShape)
                         .border(
                             width = 2.dp,
-                            color = MaterialTheme.colorScheme.primary,
+                            color =
+                                MaterialTheme
+                                    .colorScheme
+                                    .primary,
                             shape = CircleShape
                         ),
-
-                    contentScale = ContentScale.Crop
+                    contentScale =
+                        ContentScale.Crop
                 )
 
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = user.name ?: user.login,
-
+                        text =
+                            user.name ?: user.login,
                         fontSize = 20.sp,
-
-                        fontWeight = FontWeight.Bold,
-
-                        color = MaterialTheme.colorScheme.onSurface
+                        fontWeight =
+                            FontWeight.Bold,
+                        color =
+                            MaterialTheme
+                                .colorScheme
+                                .onSurface
                     )
 
                     Text(
                         text = "@${user.login}",
-
                         fontSize = 14.sp,
-
-                        color = MaterialTheme.colorScheme.primary
+                        color =
+                            MaterialTheme
+                                .colorScheme
+                                .primary
                     )
                 }
             }
@@ -345,12 +443,15 @@ fun UserProfileHeaderCard(
                 )
 
                 Text(
-                    text = user.bio,
-
-                    style = MaterialTheme.typography.bodyMedium,
-
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-
+                    text = user.bio!!,
+                    style =
+                        MaterialTheme
+                            .typography
+                            .bodyMedium,
+                    color =
+                        MaterialTheme
+                            .colorScheme
+                            .onSurfaceVariant,
                     maxLines = 2
                 )
             }
@@ -361,8 +462,10 @@ fun UserProfileHeaderCard(
 
             HorizontalDivider(
                 thickness = 0.5.dp,
-
-                color = MaterialTheme.colorScheme.outlineVariant
+                color =
+                    MaterialTheme
+                        .colorScheme
+                        .outlineVariant
             )
 
             Spacer(
@@ -371,8 +474,8 @@ fun UserProfileHeaderCard(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-
-                horizontalArrangement = Arrangement.SpaceAround
+                horizontalArrangement =
+                    Arrangement.SpaceAround
             ) {
                 UserMiniMetric(
                     label = "Followers",
@@ -399,16 +502,18 @@ fun UserMiniMetric(
     count: Int
 ) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment =
+            Alignment.CenterHorizontally
     ) {
         Text(
             text = count.toString(),
-
             fontSize = 17.sp,
-
-            fontWeight = FontWeight.Bold,
-
-            color = MaterialTheme.colorScheme.onSurface
+            fontWeight =
+                FontWeight.Bold,
+            color =
+                MaterialTheme
+                    .colorScheme
+                    .onSurface
         )
 
         Spacer(
@@ -417,10 +522,11 @@ fun UserMiniMetric(
 
         Text(
             text = label,
-
             fontSize = 11.sp,
-
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color =
+                MaterialTheme
+                    .colorScheme
+                    .onSurfaceVariant
         )
     }
 }
@@ -437,31 +543,37 @@ fun QuickActionButton(
             .height(96.dp)
             .clickable { onClick() },
 
-        shape = RoundedCornerShape(14.dp),
+        shape =
+            RoundedCornerShape(14.dp),
 
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor =
+                MaterialTheme.colorScheme.surface
         ),
 
-        border = CardDefaults.outlinedCardBorder()
+        border =
+            CardDefaults.outlinedCardBorder()
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 4.dp),
 
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment =
+                Alignment.CenterHorizontally,
 
-            verticalArrangement = Arrangement.Center
+            verticalArrangement =
+                Arrangement.Center
         ) {
             Icon(
                 imageVector = icon,
-
                 contentDescription = label,
-
-                tint = MaterialTheme.colorScheme.primary,
-
-                modifier = Modifier.size(27.dp)
+                tint =
+                    MaterialTheme
+                        .colorScheme
+                        .primary,
+                modifier =
+                    Modifier.size(27.dp)
             )
 
             Spacer(
@@ -470,11 +582,9 @@ fun QuickActionButton(
 
             Text(
                 text = label,
-
                 fontSize = 13.sp,
-
-                fontWeight = FontWeight.Medium,
-
+                fontWeight =
+                    FontWeight.Medium,
                 maxLines = 1
             )
         }
@@ -490,64 +600,71 @@ fun StatCard(
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier
-            .height(94.dp),
+        modifier = modifier.height(94.dp),
 
-        shape = RoundedCornerShape(14.dp),
+        shape =
+            RoundedCornerShape(14.dp),
 
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor =
+                MaterialTheme.colorScheme.surface
         ),
 
-        border = CardDefaults.outlinedCardBorder()
+        border =
+            CardDefaults.outlinedCardBorder()
     ) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(12.dp),
 
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment =
+                Alignment.CenterVertically,
 
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            horizontalArrangement =
+                Arrangement.spacedBy(10.dp)
         ) {
             Box(
                 modifier = Modifier
                     .size(42.dp)
-                    .clip(RoundedCornerShape(10.dp))
+                    .clip(
+                        RoundedCornerShape(10.dp)
+                    )
                     .background(
                         color.copy(alpha = 0.15f)
                     ),
 
-                contentAlignment = Alignment.Center
+                contentAlignment =
+                    Alignment.Center
             ) {
                 Icon(
                     imageVector = icon,
-
                     contentDescription = null,
-
                     tint = color,
-
-                    modifier = Modifier.size(24.dp)
+                    modifier =
+                        Modifier.size(24.dp)
                 )
             }
 
             Column {
                 Text(
                     text = value,
-
                     fontSize = 18.sp,
-
-                    fontWeight = FontWeight.Bold,
-
-                    color = MaterialTheme.colorScheme.onSurface
+                    fontWeight =
+                        FontWeight.Bold,
+                    color =
+                        MaterialTheme
+                            .colorScheme
+                            .onSurface
                 )
 
                 Text(
                     text = title,
-
                     fontSize = 12.sp,
-
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color =
+                        MaterialTheme
+                            .colorScheme
+                            .onSurfaceVariant
                 )
             }
         }
