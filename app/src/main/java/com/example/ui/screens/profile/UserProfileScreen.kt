@@ -48,39 +48,66 @@ fun UserProfileScreen(
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+
     val loggedInUser by viewModel.currentUser.collectAsState()
 
-    var user by remember { mutableStateOf<GitHubUser?>(null) }
-    var repos by remember { mutableStateOf<List<Repository>>(emptyList()) }
-    var isFollowing by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(true) }
+    var user by remember {
+        mutableStateOf<GitHubUser?>(null)
+    }
 
-    val isSelf =
-        loggedInUser?.login.equals(username, ignoreCase = true) ||
-            username.isEmpty()
+    var repos by remember {
+        mutableStateOf<List<Repository>>(emptyList())
+    }
 
-    LaunchedEffect(username) {
+    var isFollowing by remember {
+        mutableStateOf(false)
+    }
+
+    var isLoading by remember {
+        mutableStateOf(true)
+    }
+
+    val isSelf = remember(
+        loggedInUser?.login,
+        username
+    ) {
+        loggedInUser?.login.equals(
+            username,
+            ignoreCase = true
+        ) || username.isEmpty()
+    }
+
+    LaunchedEffect(
+        username,
+        loggedInUser?.login
+    ) {
         isLoading = true
 
-        val targetUser =
-            if (isSelf && loggedInUser != null) {
-                loggedInUser!!.login
-            } else {
-                username
-            }
+        val targetUser = if (
+            isSelf && loggedInUser != null
+        ) {
+            loggedInUser!!.login
+        } else {
+            username
+        }
 
         if (targetUser.isNotBlank()) {
 
-            when (val res = viewModel.repository.getUserProfile(targetUser)) {
+            when (
+                val result =
+                    viewModel.repository.getUserProfile(targetUser)
+            ) {
                 is ApiResult.Success -> {
-                    user = res.data
+                    user = result.data
                 }
 
                 is ApiResult.Error -> {
                     if (isSelf) {
                         user = loggedInUser
                     } else {
-                        viewModel.postMessage(res.message)
+                        viewModel.postMessage(
+                            result.message
+                        )
                     }
                 }
 
@@ -89,26 +116,35 @@ fun UserProfileScreen(
 
             if (!isSelf) {
                 isFollowing =
-                    viewModel.repository.checkFollowing(targetUser)
+                    viewModel.repository.checkFollowing(
+                        targetUser
+                    )
             }
 
             when (
-                val repoRes =
-                    viewModel.repository.getUserPublicRepos(targetUser)
+                val result =
+                    viewModel.repository.getUserPublicRepos(
+                        targetUser
+                    )
             ) {
                 is ApiResult.Success -> {
-                    repos = repoRes.data
+                    repos = result.data
                 }
 
-                else -> Unit
+                is ApiResult.Error -> Unit
+
+                is ApiResult.Loading -> Unit
             }
         }
 
         isLoading = false
     }
 
+    val backgroundColor =
+        MaterialTheme.colorScheme.background
+
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = backgroundColor,
 
         topBar = {
             TopAppBar(
@@ -140,26 +176,39 @@ fun UserProfileScreen(
 
                 actions = {
 
-                    if (isSelf && onEditProfileClick != null) {
+                    if (
+                        isSelf &&
+                        onEditProfileClick != null
+                    ) {
                         IconButton(
                             onClick = onEditProfileClick
                         ) {
                             Icon(
-                                imageVector = Icons.Outlined.Edit,
-                                contentDescription = "Edit profile",
-                                modifier = Modifier.size(22.dp)
+                                imageVector =
+                                    Icons.Outlined.Edit,
+                                contentDescription =
+                                    "Edit profile",
+                                modifier =
+                                    Modifier.size(22.dp)
                             )
                         }
                     }
 
-                    if (isSelf && onNavigateToSettings != null) {
+                    if (
+                        isSelf &&
+                        onNavigateToSettings != null
+                    ) {
                         IconButton(
-                            onClick = onNavigateToSettings
+                            onClick =
+                                onNavigateToSettings
                         ) {
                             Icon(
-                                imageVector = Icons.Outlined.Settings,
-                                contentDescription = "Settings",
-                                modifier = Modifier.size(22.dp)
+                                imageVector =
+                                    Icons.Outlined.Settings,
+                                contentDescription =
+                                    "Settings",
+                                modifier =
+                                    Modifier.size(22.dp)
                             )
                         }
                     }
@@ -176,17 +225,23 @@ fun UserProfileScreen(
                         }
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.OpenInBrowser,
-                            contentDescription = "Open in GitHub",
-                            modifier = Modifier.size(22.dp)
+                            imageVector =
+                                Icons.Outlined.OpenInBrowser,
+                            contentDescription =
+                                "Open in GitHub",
+                            modifier =
+                                Modifier.size(22.dp)
                         )
                     }
                 },
 
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor =
-                        MaterialTheme.colorScheme.background
-                )
+                colors =
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor =
+                            backgroundColor,
+                        scrolledContainerColor =
+                            backgroundColor
+                    )
             )
         }
     ) { innerPadding ->
@@ -199,7 +254,8 @@ fun UserProfileScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding),
-                    contentAlignment = Alignment.Center
+                    contentAlignment =
+                        Alignment.Center
                 ) {
                     CircularProgressIndicator()
                 }
@@ -211,18 +267,21 @@ fun UserProfileScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding),
-                    contentAlignment = Alignment.Center
+                    contentAlignment =
+                        Alignment.Center
                 ) {
                     Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
+                        horizontalAlignment =
+                            Alignment.CenterHorizontally,
                         verticalArrangement =
                             Arrangement.spacedBy(8.dp)
                     ) {
-
                         Icon(
-                            imageVector = Icons.Outlined.PersonOff,
+                            imageVector =
+                                Icons.Outlined.PersonOff,
                             contentDescription = null,
-                            modifier = Modifier.size(42.dp),
+                            modifier =
+                                Modifier.size(42.dp),
                             tint = ProfileSecondary
                         )
 
@@ -236,7 +295,7 @@ fun UserProfileScreen(
 
             else -> {
 
-                val u = user!!
+                val currentUser = user!!
 
                 LazyColumn(
                     modifier = Modifier
@@ -254,16 +313,22 @@ fun UserProfileScreen(
                         Arrangement.spacedBy(12.dp)
                 ) {
 
-                    item {
+                    item(
+                        key = "profile_header",
+                        contentType = "profile_header"
+                    ) {
 
                         Surface(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
-                            color = ProfileCardColor
+                            modifier =
+                                Modifier.fillMaxWidth(),
+                            shape =
+                                RoundedCornerShape(16.dp),
+                            color =
+                                ProfileCardColor
                         ) {
-
                             Column(
-                                modifier = Modifier.padding(18.dp),
+                                modifier =
+                                    Modifier.padding(18.dp),
                                 verticalArrangement =
                                     Arrangement.spacedBy(14.dp)
                             ) {
@@ -274,35 +339,41 @@ fun UserProfileScreen(
                                 ) {
 
                                     AsyncImage(
-                                        model = u.avatar_url,
-                                        contentDescription = "Avatar",
-
-                                        modifier = Modifier
-                                            .size(78.dp)
-                                            .clip(CircleShape)
-                                            .border(
-                                                width = 2.dp,
-                                                color =
-                                                    MaterialTheme
-                                                        .colorScheme
-                                                        .primary,
-                                                shape = CircleShape
-                                            ),
-
+                                        model =
+                                            currentUser.avatar_url,
+                                        contentDescription =
+                                            "Avatar",
+                                        modifier =
+                                            Modifier
+                                                .size(78.dp)
+                                                .clip(CircleShape)
+                                                .border(
+                                                    width = 2.dp,
+                                                    color =
+                                                        MaterialTheme
+                                                            .colorScheme
+                                                            .primary,
+                                                    shape =
+                                                        CircleShape
+                                                ),
                                         contentScale =
                                             ContentScale.Crop
                                     )
 
                                     Spacer(
-                                        modifier = Modifier.width(14.dp)
+                                        modifier =
+                                            Modifier.width(14.dp)
                                     )
 
                                     Column(
-                                        modifier = Modifier.weight(1f)
+                                        modifier =
+                                            Modifier.weight(1f)
                                     ) {
 
                                         Text(
-                                            text = u.name ?: u.login,
+                                            text =
+                                                currentUser.name
+                                                    ?: currentUser.login,
                                             fontSize = 21.sp,
                                             fontWeight =
                                                 FontWeight.Bold
@@ -314,7 +385,8 @@ fun UserProfileScreen(
                                         )
 
                                         Text(
-                                            text = "@${u.login}",
+                                            text =
+                                                "@${currentUser.login}",
                                             fontSize = 14.sp,
                                             color =
                                                 MaterialTheme
@@ -334,7 +406,7 @@ fun UserProfileScreen(
 
                                             Text(
                                                 text =
-                                                    "${u.followers} followers",
+                                                    "${currentUser.followers} followers",
                                                 fontSize = 12.sp,
                                                 fontWeight =
                                                     FontWeight.SemiBold
@@ -342,7 +414,7 @@ fun UserProfileScreen(
 
                                             Text(
                                                 text =
-                                                    "${u.following} following",
+                                                    "${currentUser.following} following",
                                                 fontSize = 12.sp,
                                                 fontWeight =
                                                     FontWeight.SemiBold
@@ -351,10 +423,13 @@ fun UserProfileScreen(
                                     }
                                 }
 
-                                if (!u.bio.isNullOrBlank()) {
-
+                                if (
+                                    !currentUser.bio
+                                        .isNullOrBlank()
+                                ) {
                                     Text(
-                                        text = u.bio,
+                                        text =
+                                            currentUser.bio!!,
                                         fontSize = 14.sp,
                                         color =
                                             MaterialTheme
@@ -369,28 +444,39 @@ fun UserProfileScreen(
                                         Arrangement.spacedBy(8.dp)
                                 ) {
 
-                                    if (!u.company.isNullOrBlank()) {
-
+                                    if (
+                                        !currentUser.company
+                                            .isNullOrBlank()
+                                    ) {
                                         ProfileMetaRow(
-                                            icon = Icons.Outlined.Business,
-                                            text = u.company
+                                            icon =
+                                                Icons.Outlined.Business,
+                                            text =
+                                                currentUser.company!!
                                         )
                                     }
 
-                                    if (!u.location.isNullOrBlank()) {
-
+                                    if (
+                                        !currentUser.location
+                                            .isNullOrBlank()
+                                    ) {
                                         ProfileMetaRow(
                                             icon =
                                                 Icons.Outlined.LocationOn,
-                                            text = u.location
+                                            text =
+                                                currentUser.location!!
                                         )
                                     }
 
-                                    if (!u.blog.isNullOrBlank()) {
-
+                                    if (
+                                        !currentUser.blog
+                                            .isNullOrBlank()
+                                    ) {
                                         ProfileMetaRow(
-                                            icon = Icons.Outlined.Link,
-                                            text = u.blog,
+                                            icon =
+                                                Icons.Outlined.Link,
+                                            text =
+                                                currentUser.blog!!,
                                             tint =
                                                 MaterialTheme
                                                     .colorScheme
@@ -403,18 +489,23 @@ fun UserProfileScreen(
 
                                     Button(
                                         onClick = {
+                                            if (isFollowing) {
+                                                // handled below
+                                            }
 
                                             coroutineScope.launch {
 
-                                                HapticUtils.performConfirm(
-                                                    context
-                                                )
+                                                HapticUtils
+                                                    .performConfirm(
+                                                        context
+                                                    )
 
                                                 when (
-                                                    val res =
-                                                        viewModel.repository
+                                                    val result =
+                                                        viewModel
+                                                            .repository
                                                             .toggleFollow(
-                                                                u.login,
+                                                                currentUser.login,
                                                                 isFollowing
                                                             )
                                                 ) {
@@ -422,21 +513,25 @@ fun UserProfileScreen(
                                                     is ApiResult.Success -> {
 
                                                         isFollowing =
-                                                            res.data
+                                                            result.data
 
-                                                        viewModel.postMessage(
-                                                            if (isFollowing) {
-                                                                "Followed @${u.login}"
-                                                            } else {
-                                                                "Unfollowed @${u.login}"
-                                                            }
-                                                        )
+                                                        viewModel
+                                                            .postMessage(
+                                                                if (
+                                                                    isFollowing
+                                                                ) {
+                                                                    "Followed @${currentUser.login}"
+                                                                } else {
+                                                                    "Unfollowed @${currentUser.login}"
+                                                                }
+                                                            )
                                                     }
 
                                                     is ApiResult.Error -> {
-                                                        viewModel.postMessage(
-                                                            res.message
-                                                        )
+                                                        viewModel
+                                                            .postMessage(
+                                                                result.message
+                                                            )
                                                     }
 
                                                     is ApiResult.Loading ->
@@ -468,7 +563,8 @@ fun UserProfileScreen(
                                                 } else {
                                                     Icons.Outlined.PersonAdd
                                                 },
-                                            contentDescription = null,
+                                            contentDescription =
+                                                null,
                                             modifier =
                                                 Modifier.size(18.dp)
                                         )
@@ -492,11 +588,16 @@ fun UserProfileScreen(
                         }
                     }
 
-                    item {
+                    item(
+                        key = "profile_info",
+                        contentType = "profile_info"
+                    ) {
 
                         Surface(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(14.dp),
+                            modifier =
+                                Modifier.fillMaxWidth(),
+                            shape =
+                                RoundedCornerShape(14.dp),
                             color =
                                 MaterialTheme
                                     .colorScheme
@@ -504,7 +605,8 @@ fun UserProfileScreen(
                         ) {
 
                             Row(
-                                modifier = Modifier.padding(13.dp),
+                                modifier =
+                                    Modifier.padding(13.dp),
                                 verticalAlignment =
                                     Alignment.CenterVertically
                             ) {
@@ -512,7 +614,8 @@ fun UserProfileScreen(
                                 Icon(
                                     imageVector =
                                         Icons.Outlined.Info,
-                                    contentDescription = null,
+                                    contentDescription =
+                                        null,
                                     tint =
                                         MaterialTheme
                                             .colorScheme
@@ -540,7 +643,10 @@ fun UserProfileScreen(
                         }
                     }
 
-                    item {
+                    item(
+                        key = "repository_header",
+                        contentType = "repository_header"
+                    ) {
 
                         Row(
                             modifier = Modifier
@@ -557,7 +663,8 @@ fun UserProfileScreen(
                                 text =
                                     "Public Repositories",
                                 fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight =
+                                    FontWeight.Bold,
                                 modifier =
                                     Modifier.weight(1f)
                             )
@@ -565,9 +672,9 @@ fun UserProfileScreen(
                             Surface(
                                 shape =
                                     RoundedCornerShape(10.dp),
-                                color = ProfileCardColor
+                                color =
+                                    ProfileCardColor
                             ) {
-
                                 Text(
                                     text = "${repos.size}",
                                     modifier =
@@ -589,14 +696,18 @@ fun UserProfileScreen(
 
                     if (repos.isEmpty()) {
 
-                        item {
+                        item(
+                            key = "empty_repositories",
+                            contentType = "empty_repositories"
+                        ) {
 
                             Surface(
                                 modifier =
                                     Modifier.fillMaxWidth(),
                                 shape =
                                     RoundedCornerShape(14.dp),
-                                color = ProfileCardColor
+                                color =
+                                    ProfileCardColor
                             ) {
 
                                 Column(
@@ -610,12 +721,13 @@ fun UserProfileScreen(
 
                                     Icon(
                                         imageVector =
-                                            Icons.Outlined
-                                                .FolderOpen,
-                                        contentDescription = null,
+                                            Icons.Outlined.FolderOpen,
+                                        contentDescription =
+                                            null,
                                         modifier =
                                             Modifier.size(36.dp),
-                                        tint = ProfileSecondary
+                                        tint =
+                                            ProfileSecondary
                                     )
 
                                     Spacer(
@@ -645,7 +757,8 @@ fun UserProfileScreen(
 
                         items(
                             items = repos,
-                            key = { it.id }
+                            key = { repo -> repo.id },
+                            contentType = { "repository" }
                         ) { repo ->
 
                             RepositoryCard(
@@ -653,7 +766,8 @@ fun UserProfileScreen(
                                 onClick = {
 
                                     val ownerLogin =
-                                        repo.owner?.login ?: u.login
+                                        repo.owner?.login
+                                            ?: currentUser.login
 
                                     onRepoClick(
                                         ownerLogin,
@@ -677,7 +791,8 @@ private fun ProfileMetaRow(
         MaterialTheme.colorScheme.onSurfaceVariant
 ) {
     Row(
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment =
+            Alignment.CenterVertically,
         horizontalArrangement =
             Arrangement.spacedBy(8.dp)
     ) {
