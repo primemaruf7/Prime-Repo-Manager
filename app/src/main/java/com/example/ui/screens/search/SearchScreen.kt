@@ -46,193 +46,539 @@ fun SearchScreen(
     val coroutineScope = rememberCoroutineScope()
     val rateLimit by viewModel.rateLimit.collectAsState()
 
-    var searchQuery by remember { mutableStateOf("") }
-    var selectedTab by remember { mutableStateOf(SearchTab.REPOS) }
-    var isLoading by remember { mutableStateOf(false) }
+    var searchQuery by remember {
+        mutableStateOf("")
+    }
 
-    var repoResults by remember { mutableStateOf<List<Repository>>(emptyList()) }
-    var userResults by remember { mutableStateOf<List<GitHubUser>>(emptyList()) }
-    var codeResults by remember { mutableStateOf<List<CodeSearchItem>>(emptyList()) }
-    var issueResults by remember { mutableStateOf<List<Issue>>(emptyList()) }
+    var selectedTab by remember {
+        mutableStateOf(SearchTab.REPOS)
+    }
+
+    var isLoading by remember {
+        mutableStateOf(false)
+    }
+
+    var repoResults by remember {
+        mutableStateOf<List<Repository>>(emptyList())
+    }
+
+    var userResults by remember {
+        mutableStateOf<List<GitHubUser>>(emptyList())
+    }
+
+    var codeResults by remember {
+        mutableStateOf<List<CodeSearchItem>>(emptyList())
+    }
+
+    var issueResults by remember {
+        mutableStateOf<List<Issue>>(emptyList())
+    }
 
     fun executeSearch() {
         if (searchQuery.isBlank()) return
+
         isLoading = true
+
         coroutineScope.launch {
             when (selectedTab) {
+
                 SearchTab.REPOS -> {
-                    when (val res = viewModel.repository.searchRepositories(searchQuery)) {
-                        is ApiResult.Success -> repoResults = res.data.items
-                        is ApiResult.Error -> viewModel.postMessage(res.message)
-                        is ApiResult.Loading -> {}
+                    when (
+                        val res = viewModel.repository
+                            .searchRepositories(searchQuery)
+                    ) {
+                        is ApiResult.Success -> {
+                            repoResults = res.data.items
+                        }
+
+                        is ApiResult.Error -> {
+                            viewModel.postMessage(res.message)
+                        }
+
+                        is ApiResult.Loading -> Unit
                     }
                 }
+
                 SearchTab.USERS -> {
-                    when (val res = viewModel.repository.searchUsers(searchQuery)) {
-                        is ApiResult.Success -> userResults = res.data.items
-                        is ApiResult.Error -> viewModel.postMessage(res.message)
-                        is ApiResult.Loading -> {}
+                    when (
+                        val res = viewModel.repository
+                            .searchUsers(searchQuery)
+                    ) {
+                        is ApiResult.Success -> {
+                            userResults = res.data.items
+                        }
+
+                        is ApiResult.Error -> {
+                            viewModel.postMessage(res.message)
+                        }
+
+                        is ApiResult.Loading -> Unit
                     }
                 }
+
                 SearchTab.CODE -> {
-                    when (val res = viewModel.repository.searchCode(searchQuery)) {
-                        is ApiResult.Success -> codeResults = res.data.items
-                        is ApiResult.Error -> viewModel.postMessage(res.message)
-                        is ApiResult.Loading -> {}
+                    when (
+                        val res = viewModel.repository
+                            .searchCode(searchQuery)
+                    ) {
+                        is ApiResult.Success -> {
+                            codeResults = res.data.items
+                        }
+
+                        is ApiResult.Error -> {
+                            viewModel.postMessage(res.message)
+                        }
+
+                        is ApiResult.Loading -> Unit
                     }
                 }
+
                 SearchTab.ISSUES -> {
-                    when (val res = viewModel.repository.searchIssues(searchQuery)) {
-                        is ApiResult.Success -> issueResults = res.data.items
-                        is ApiResult.Error -> viewModel.postMessage(res.message)
-                        is ApiResult.Loading -> {}
+                    when (
+                        val res = viewModel.repository
+                            .searchIssues(searchQuery)
+                    ) {
+                        is ApiResult.Success -> {
+                            issueResults = res.data.items
+                        }
+
+                        is ApiResult.Error -> {
+                            viewModel.postMessage(res.message)
+                        }
+
+                        is ApiResult.Loading -> Unit
                     }
                 }
             }
+
             isLoading = false
         }
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+
         topBar = {
             TopAppBar(
-                title = { Text("Global Search", fontWeight = FontWeight.Bold) },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
+                title = {
+                    Text(
+                        text = "Global Search",
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    scrolledContainerColor = MaterialTheme.colorScheme.background
+                )
             )
         }
     ) { innerPadding ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // Search Input
+
             OutlinedTextField(
                 value = searchQuery,
-                onValueChange = { searchQuery = it },
-                placeholder = { Text("Search GitHub ${selectedTab.label.lowercase()}...") },
+
+                onValueChange = {
+                    searchQuery = it
+                },
+
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 6.dp),
-                singleLine = true,
-                leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
+                    .padding(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = 8.dp,
+                        bottom = 8.dp
+                    ),
+
+                placeholder = {
+                    Text(
+                        text = "Search GitHub ${selectedTab.label.lowercase()}..."
+                    )
+                },
+
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Outlined.Search,
+                        contentDescription = null
+                    )
+                },
+
                 trailingIcon = {
                     if (searchQuery.isNotBlank()) {
-                        IconButton(onClick = { executeSearch() }) {
-                            Icon(Icons.Outlined.ArrowForward, contentDescription = "Run search", tint = MaterialTheme.colorScheme.primary)
+                        IconButton(
+                            onClick = {
+                                executeSearch()
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.ArrowForward,
+                                contentDescription = "Run search",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
                         }
                     }
                 },
-                shape = RoundedCornerShape(10.dp)
+
+                singleLine = true,
+
+                shape = RoundedCornerShape(14.dp)
             )
 
-            // Category TabRow
-            PrimaryTabRow(selectedTabIndex = selectedTab.ordinal) {
+            PrimaryTabRow(
+                selectedTabIndex = selectedTab.ordinal,
+
+                containerColor = MaterialTheme.colorScheme.background,
+
+                contentColor = MaterialTheme.colorScheme.primary
+            ) {
                 SearchTab.values().forEach { tab ->
+
                     Tab(
                         selected = selectedTab == tab,
+
                         onClick = {
                             selectedTab = tab
-                            executeSearch()
+
+                            if (searchQuery.isNotBlank()) {
+                                executeSearch()
+                            }
                         },
-                        text = { Text(tab.label, fontSize = 12.sp) }
+
+                        text = {
+                            Text(
+                                text = tab.label,
+                                fontSize = 12.sp,
+                                maxLines = 1
+                            )
+                        }
                     )
                 }
             }
 
-            Box(modifier = Modifier.weight(1f)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f)
+            ) {
+
                 if (isLoading) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
                         CircularProgressIndicator()
                     }
+
                 } else if (searchQuery.isBlank()) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        RateLimitCard(info = rateLimit)
-                        Spacer(modifier = Modifier.height(24.dp))
-                        EmptyStateView(
-                            icon = Icons.Outlined.Search,
-                            title = "Search GitHub",
-                            description = "Search across public & private repositories, developers, source code, and issues worldwide."
-                        )
+
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+
+                        contentPadding = PaddingValues(
+                            start = 16.dp,
+                            end = 16.dp,
+                            top = 16.dp,
+                            bottom = 100.dp
+                        ),
+
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        item {
+                            RateLimitCard(
+                                info = rateLimit
+                            )
+                        }
+
+                        item {
+                            EmptyStateView(
+                                icon = Icons.Outlined.Search,
+
+                                title = "Search GitHub",
+
+                                description =
+                                    "Search across public & private repositories, " +
+                                    "developers, source code, and issues worldwide."
+                            )
+                        }
                     }
+
                 } else {
+
                     when (selectedTab) {
+
                         SearchTab.REPOS -> {
+
                             if (repoResults.isEmpty()) {
-                                EmptyStateView(icon = Icons.Outlined.SearchOff, title = "No Repositories", description = "No repositories found for \"$searchQuery\".")
+
+                                EmptyStateView(
+                                    icon = Icons.Outlined.SearchOff,
+                                    title = "No Repositories",
+                                    description =
+                                        "No repositories found for \"$searchQuery\"."
+                                )
+
                             } else {
+
                                 LazyColumn(
                                     modifier = Modifier.fillMaxSize(),
-                                    contentPadding = PaddingValues(16.dp),
-                                    verticalArrangement = Arrangement.spacedBy(10.dp)
+
+                                    contentPadding = PaddingValues(
+                                        start = 16.dp,
+                                        end = 16.dp,
+                                        top = 12.dp,
+                                        bottom = 100.dp
+                                    ),
+
+                                    verticalArrangement =
+                                        Arrangement.spacedBy(10.dp)
                                 ) {
-                                    items(repoResults, key = { it.id }) { repo ->
+                                    items(
+                                        repoResults,
+                                        key = { it.id }
+                                    ) { repo ->
+
                                         RepositoryCard(
                                             repo = repo,
+
                                             onClick = {
-                                                val owner = repo.owner?.login ?: "user"
-                                                onRepoClick(owner, repo.name)
+                                                val owner =
+                                                    repo.owner?.login ?: "user"
+
+                                                onRepoClick(
+                                                    owner,
+                                                    repo.name
+                                                )
                                             }
                                         )
                                     }
                                 }
                             }
                         }
+
                         SearchTab.USERS -> {
+
                             if (userResults.isEmpty()) {
-                                EmptyStateView(icon = Icons.Outlined.PersonOff, title = "No Users", description = "No users found for \"$searchQuery\".")
+
+                                EmptyStateView(
+                                    icon = Icons.Outlined.PersonOff,
+                                    title = "No Users",
+                                    description =
+                                        "No users found for \"$searchQuery\"."
+                                )
+
                             } else {
-                                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                                    items(userResults, key = { it.id }) { user ->
+
+                                LazyColumn(
+                                    modifier = Modifier.fillMaxSize(),
+
+                                    contentPadding = PaddingValues(
+                                        bottom = 100.dp
+                                    )
+                                ) {
+                                    items(
+                                        userResults,
+                                        key = { it.id }
+                                    ) { user ->
+
                                         ListItem(
-                                            headlineContent = { Text(user.login, fontWeight = FontWeight.SemiBold) },
+                                            headlineContent = {
+                                                Text(
+                                                    text = user.login,
+                                                    fontWeight =
+                                                        FontWeight.SemiBold
+                                                )
+                                            },
+
                                             leadingContent = {
                                                 AsyncImage(
                                                     model = user.avatar_url,
+
                                                     contentDescription = null,
-                                                    modifier = Modifier.size(40.dp).clip(CircleShape)
+
+                                                    modifier = Modifier
+                                                        .size(44.dp)
+                                                        .clip(CircleShape)
                                                 )
                                             },
-                                            trailingContent = { Icon(Icons.Outlined.ChevronRight, contentDescription = null) },
-                                            modifier = Modifier.clickable { onUserClick(user.login) }
-                                        )
-                                        HorizontalDivider(thickness = 0.5.dp)
-                                    }
-                                }
-                            }
-                        }
-                        SearchTab.CODE -> {
-                            if (codeResults.isEmpty()) {
-                                EmptyStateView(icon = Icons.Outlined.CodeOff, title = "No Code Results", description = "No matching code found for \"$searchQuery\".")
-                            } else {
-                                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                                    items(codeResults, key = { it.sha + it.path }) { item ->
-                                        ListItem(
-                                            headlineContent = { Text(item.name, fontWeight = FontWeight.SemiBold) },
-                                            supportingContent = { Text("${item.repository.full_name} • ${item.path}", style = MaterialTheme.typography.bodySmall) },
-                                            leadingContent = { Icon(Icons.Outlined.Code, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+
+                                            trailingContent = {
+                                                Icon(
+                                                    imageVector =
+                                                        Icons.Outlined.ChevronRight,
+                                                    contentDescription = null
+                                                )
+                                            },
+
                                             modifier = Modifier.clickable {
-                                                val parts = item.repository.full_name.split("/")
-                                                if (parts.size == 2) onRepoClick(parts[0], parts[1])
+                                                onUserClick(
+                                                    user.login
+                                                )
                                             }
                                         )
-                                        HorizontalDivider(thickness = 0.5.dp)
+
+                                        HorizontalDivider(
+                                            thickness = 0.5.dp
+                                        )
                                     }
                                 }
                             }
                         }
-                        SearchTab.ISSUES -> {
-                            if (issueResults.isEmpty()) {
-                                EmptyStateView(icon = Icons.Outlined.HelpOutline, title = "No Issues", description = "No issues found matching \"$searchQuery\".")
+
+                        SearchTab.CODE -> {
+
+                            if (codeResults.isEmpty()) {
+
+                                EmptyStateView(
+                                    icon = Icons.Outlined.CodeOff,
+                                    title = "No Code Results",
+                                    description =
+                                        "No matching code found for \"$searchQuery\"."
+                                )
+
                             } else {
-                                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                                    items(issueResults, key = { it.id }) { issue ->
+
+                                LazyColumn(
+                                    modifier = Modifier.fillMaxSize(),
+
+                                    contentPadding = PaddingValues(
+                                        bottom = 100.dp
+                                    )
+                                ) {
+                                    items(
+                                        codeResults,
+                                        key = {
+                                            it.sha + it.path
+                                        }
+                                    ) { item ->
+
                                         ListItem(
-                                            headlineContent = { Text(issue.title, fontWeight = FontWeight.SemiBold) },
-                                            supportingContent = { Text("#${issue.number} by ${issue.user?.login ?: "user"}", style = MaterialTheme.typography.bodySmall) },
-                                            leadingContent = { Icon(Icons.Outlined.Adjust, contentDescription = null, tint = Color(0xFF39D353)) }
+                                            headlineContent = {
+                                                Text(
+                                                    text = item.name,
+                                                    fontWeight =
+                                                        FontWeight.SemiBold
+                                                )
+                                            },
+
+                                            supportingContent = {
+                                                Text(
+                                                    text =
+                                                        "${item.repository.full_name} • ${item.path}",
+
+                                                    style =
+                                                        MaterialTheme
+                                                            .typography
+                                                            .bodySmall
+                                                )
+                                            },
+
+                                            leadingContent = {
+                                                Icon(
+                                                    imageVector =
+                                                        Icons.Outlined.Code,
+
+                                                    contentDescription = null,
+
+                                                    tint =
+                                                        MaterialTheme
+                                                            .colorScheme
+                                                            .primary
+                                                )
+                                            },
+
+                                            modifier = Modifier.clickable {
+
+                                                val parts =
+                                                    item.repository
+                                                        .full_name
+                                                        .split("/")
+
+                                                if (parts.size == 2) {
+                                                    onRepoClick(
+                                                        parts[0],
+                                                        parts[1]
+                                                    )
+                                                }
+                                            }
                                         )
-                                        HorizontalDivider(thickness = 0.5.dp)
+
+                                        HorizontalDivider(
+                                            thickness = 0.5.dp
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        SearchTab.ISSUES -> {
+
+                            if (issueResults.isEmpty()) {
+
+                                EmptyStateView(
+                                    icon = Icons.Outlined.HelpOutline,
+                                    title = "No Issues",
+                                    description =
+                                        "No issues found matching \"$searchQuery\"."
+                                )
+
+                            } else {
+
+                                LazyColumn(
+                                    modifier = Modifier.fillMaxSize(),
+
+                                    contentPadding = PaddingValues(
+                                        bottom = 100.dp
+                                    )
+                                ) {
+                                    items(
+                                        issueResults,
+                                        key = { it.id }
+                                    ) { issue ->
+
+                                        ListItem(
+                                            headlineContent = {
+                                                Text(
+                                                    text = issue.title,
+                                                    fontWeight =
+                                                        FontWeight.SemiBold
+                                                )
+                                            },
+
+                                            supportingContent = {
+                                                Text(
+                                                    text =
+                                                        "#${issue.number} by ${issue.user?.login ?: "user"}",
+
+                                                    style =
+                                                        MaterialTheme
+                                                            .typography
+                                                            .bodySmall
+                                                )
+                                            },
+
+                                            leadingContent = {
+                                                Icon(
+                                                    imageVector =
+                                                        Icons.Outlined.Adjust,
+
+                                                    contentDescription = null,
+
+                                                    tint = Color(0xFF39D353)
+                                                )
+                                            }
+                                        )
+
+                                        HorizontalDivider(
+                                            thickness = 0.5.dp
+                                        )
                                     }
                                 }
                             }
