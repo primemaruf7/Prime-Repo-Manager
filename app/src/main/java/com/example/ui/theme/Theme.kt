@@ -1,10 +1,13 @@
 package com.example.ui.theme
 
-import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
+import androidx.compose.material3.Typography
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.shape.RoundedCornerShape
+import com.example.ui.viewmodel.ThemeMode
 
 private val DarkColorScheme = darkColorScheme(
     primary = PurplePrimary,
@@ -41,79 +44,72 @@ private val DarkColorScheme = darkColorScheme(
     error = ErrorRed,
     onError = PureWhite,
 
-    errorContainer = Color(0xFF3B1E22),
-    onErrorContainer = Color(0xFFFFDAD6)
+    errorContainer = ErrorRed.copy(alpha = 0.18f),
+    onErrorContainer = PureWhite
 )
 
-private val LightColorScheme = lightColorScheme(
+private val LightColorScheme = androidx.compose.material3.lightColorScheme(
     primary = PurpleDark,
     onPrimary = PureWhite,
 
-    primaryContainer = Color(0xFFE9DDFF),
-    onPrimaryContainer = Color(0xFF26005A),
+    primaryContainer = androidx.compose.ui.graphics.Color(0xFFE9DDFF),
+    onPrimaryContainer = androidx.compose.ui.graphics.Color(0xFF26005A),
 
     secondary = PurplePrimary,
     onSecondary = PureWhite,
 
-    secondaryContainer = Color(0xFFE9E0F2),
-    onSecondaryContainer = Color(0xFF21182A),
+    secondaryContainer = androidx.compose.ui.graphics.Color(0xFFE9E0F2),
+    onSecondaryContainer = androidx.compose.ui.graphics.Color(0xFF21182A),
 
-    tertiary = Color(0xFF00639A),
+    tertiary = androidx.compose.ui.graphics.Color(0xFF00639A),
     onTertiary = PureWhite,
 
-    background = Color(0xFFF9F7FB),
-    onBackground = Color(0xFF1A171D),
+    background = androidx.compose.ui.graphics.Color(0xFFF9F7FB),
+    onBackground = androidx.compose.ui.graphics.Color(0xFF1A171D),
 
-    surface = Color(0xFFF9F7FB),
-    onSurface = Color(0xFF1A171D),
+    surface = androidx.compose.ui.graphics.Color(0xFFF9F7FB),
+    onSurface = androidx.compose.ui.graphics.Color(0xFF1A171D),
 
-    surfaceVariant = Color(0xFFE8E1EA),
-    onSurfaceVariant = Color(0xFF4A454D),
+    surfaceVariant = androidx.compose.ui.graphics.Color(0xFFE8E1EA),
+    onSurfaceVariant = androidx.compose.ui.graphics.Color(0xFF4A454D),
 
-    surfaceContainer = Color(0xFFF0EBF2),
-    surfaceContainerHigh = Color(0xFFEAE4EC),
-    surfaceContainerHighest = Color(0xFFE4DEE6),
+    surfaceContainer = androidx.compose.ui.graphics.Color(0xFFF0EBF2),
+    surfaceContainerHigh = androidx.compose.ui.graphics.Color(0xFFEAE4EC),
+    surfaceContainerHighest = androidx.compose.ui.graphics.Color(0xFFE4DEE6),
 
-    outline = Color(0xFF7C757F),
-    outlineVariant = Color(0xFFD0C8D1),
+    outline = androidx.compose.ui.graphics.Color(0xFF7C757F),
+    outlineVariant = androidx.compose.ui.graphics.Color(0xFFD0C8D1),
 
-    error = Color(0xFFBA1A1A),
-    onError = PureWhite,
-
-    errorContainer = Color(0xFFFFDAD6),
-    onErrorContainer = Color(0xFF410002)
+    error = androidx.compose.ui.graphics.Color(0xFFBA1A1A),
+    onError = PureWhite
 )
 
 @Composable
 fun PrimeRepoTheme(
-    darkTheme: Boolean = true,
-    dynamicColor: Boolean = false,
+    themeMode: ThemeMode,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            if (darkTheme) {
-                dynamicDarkColorScheme(androidx.compose.ui.platform.LocalContext.current)
+    val colorScheme = when (themeMode) {
+        ThemeMode.DARK -> DarkColorScheme
+        ThemeMode.LIGHT -> LightColorScheme
+        ThemeMode.SYSTEM -> {
+            if (androidx.compose.foundation.isSystemInDarkTheme()) {
+                DarkColorScheme
             } else {
-                dynamicLightColorScheme(androidx.compose.ui.platform.LocalContext.current)
+                LightColorScheme
             }
         }
-
-        darkTheme -> DarkColorScheme
-
-        else -> LightColorScheme
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography(),
         shapes = Shapes(
-            extraSmall = androidx.compose.foundation.shape.RoundedCornerShape(6.dp),
-            small = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
-            medium = androidx.compose.foundation.shape.RoundedCornerShape(14.dp),
-            large = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
-            extraLarge = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
+            extraSmall = RoundedCornerShape(6.dp),
+            small = RoundedCornerShape(10.dp),
+            medium = RoundedCornerShape(14.dp),
+            large = RoundedCornerShape(16.dp),
+            extraLarge = RoundedCornerShape(20.dp)
         ),
         content = content
     )
