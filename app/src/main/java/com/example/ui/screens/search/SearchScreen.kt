@@ -75,7 +75,9 @@ fun SearchScreen(
     }
 
     fun executeSearch() {
-        if (searchQuery.isBlank()) return
+        val query = searchQuery.trim()
+
+        if (query.isBlank() || isLoading) return
 
         isLoading = true
 
@@ -84,15 +86,15 @@ fun SearchScreen(
 
                 SearchTab.REPOS -> {
                     when (
-                        val res = viewModel.repository
-                            .searchRepositories(searchQuery)
+                        val result = viewModel.repository
+                            .searchRepositories(query)
                     ) {
                         is ApiResult.Success -> {
-                            repoResults = res.data.items
+                            repoResults = result.data.items
                         }
 
                         is ApiResult.Error -> {
-                            viewModel.postMessage(res.message)
+                            viewModel.postMessage(result.message)
                         }
 
                         is ApiResult.Loading -> Unit
@@ -101,15 +103,15 @@ fun SearchScreen(
 
                 SearchTab.USERS -> {
                     when (
-                        val res = viewModel.repository
-                            .searchUsers(searchQuery)
+                        val result = viewModel.repository
+                            .searchUsers(query)
                     ) {
                         is ApiResult.Success -> {
-                            userResults = res.data.items
+                            userResults = result.data.items
                         }
 
                         is ApiResult.Error -> {
-                            viewModel.postMessage(res.message)
+                            viewModel.postMessage(result.message)
                         }
 
                         is ApiResult.Loading -> Unit
@@ -118,15 +120,15 @@ fun SearchScreen(
 
                 SearchTab.CODE -> {
                     when (
-                        val res = viewModel.repository
-                            .searchCode(searchQuery)
+                        val result = viewModel.repository
+                            .searchCode(query)
                     ) {
                         is ApiResult.Success -> {
-                            codeResults = res.data.items
+                            codeResults = result.data.items
                         }
 
                         is ApiResult.Error -> {
-                            viewModel.postMessage(res.message)
+                            viewModel.postMessage(result.message)
                         }
 
                         is ApiResult.Loading -> Unit
@@ -135,15 +137,15 @@ fun SearchScreen(
 
                 SearchTab.ISSUES -> {
                     when (
-                        val res = viewModel.repository
-                            .searchIssues(searchQuery)
+                        val result = viewModel.repository
+                            .searchIssues(query)
                     ) {
                         is ApiResult.Success -> {
-                            issueResults = res.data.items
+                            issueResults = result.data.items
                         }
 
                         is ApiResult.Error -> {
-                            viewModel.postMessage(res.message)
+                            viewModel.postMessage(result.message)
                         }
 
                         is ApiResult.Loading -> Unit
@@ -155,8 +157,10 @@ fun SearchScreen(
         }
     }
 
+    val backgroundColor = MaterialTheme.colorScheme.background
+
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = backgroundColor,
 
         topBar = {
             TopAppBar(
@@ -168,8 +172,8 @@ fun SearchScreen(
                 },
 
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    scrolledContainerColor = MaterialTheme.colorScheme.background
+                    containerColor = backgroundColor,
+                    scrolledContainerColor = backgroundColor
                 )
             )
         }
@@ -215,7 +219,8 @@ fun SearchScreen(
                         IconButton(
                             onClick = {
                                 executeSearch()
-                            }
+                            },
+                            enabled = !isLoading
                         ) {
                             Icon(
                                 imageVector = Icons.Outlined.ArrowForward,
@@ -233,21 +238,21 @@ fun SearchScreen(
 
             PrimaryTabRow(
                 selectedTabIndex = selectedTab.ordinal,
-
-                containerColor = MaterialTheme.colorScheme.background,
-
+                containerColor = backgroundColor,
                 contentColor = MaterialTheme.colorScheme.primary
             ) {
-                SearchTab.values().forEach { tab ->
+                SearchTab.entries.forEach { tab ->
 
                     Tab(
                         selected = selectedTab == tab,
 
                         onClick = {
-                            selectedTab = tab
+                            if (selectedTab != tab) {
+                                selectedTab = tab
 
-                            if (searchQuery.isNotBlank()) {
-                                executeSearch()
+                                if (searchQuery.isNotBlank()) {
+                                    executeSearch()
+                                }
                             }
                         },
 
@@ -264,321 +269,317 @@ fun SearchScreen(
 
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
                     .weight(1f)
             ) {
 
-                if (isLoading) {
+                when {
 
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-
-                } else if (searchQuery.isBlank()) {
-
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-
-                        contentPadding = PaddingValues(
-                            start = 16.dp,
-                            end = 16.dp,
-                            top = 16.dp,
-                            bottom = 100.dp
-                        ),
-
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        item {
-                            RateLimitCard(
-                                info = rateLimit
-                            )
-                        }
-
-                        item {
-                            EmptyStateView(
-                                icon = Icons.Outlined.Search,
-
-                                title = "Search GitHub",
-
-                                description =
-                                    "Search across public & private repositories, " +
-                                    "developers, source code, and issues worldwide."
-                            )
+                    isLoading -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
                         }
                     }
 
-                } else {
+                    searchQuery.isBlank() -> {
 
-                    when (selectedTab) {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
 
-                        SearchTab.REPOS -> {
+                            contentPadding = PaddingValues(
+                                start = 16.dp,
+                                end = 16.dp,
+                                top = 16.dp,
+                                bottom = 100.dp
+                            ),
 
-                            if (repoResults.isEmpty()) {
-
-                                EmptyStateView(
-                                    icon = Icons.Outlined.SearchOff,
-                                    title = "No Repositories",
-                                    description =
-                                        "No repositories found for \"$searchQuery\"."
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            item(
+                                key = "rate_limit",
+                                contentType = "rate_limit"
+                            ) {
+                                RateLimitCard(
+                                    info = rateLimit
                                 )
+                            }
 
-                            } else {
-
-                                LazyColumn(
-                                    modifier = Modifier.fillMaxSize(),
-
-                                    contentPadding = PaddingValues(
-                                        start = 16.dp,
-                                        end = 16.dp,
-                                        top = 12.dp,
-                                        bottom = 100.dp
-                                    ),
-
-                                    verticalArrangement =
-                                        Arrangement.spacedBy(10.dp)
-                                ) {
-                                    items(
-                                        repoResults,
-                                        key = { it.id }
-                                    ) { repo ->
-
-                                        RepositoryCard(
-                                            repo = repo,
-
-                                            onClick = {
-                                                val owner =
-                                                    repo.owner?.login ?: "user"
-
-                                                onRepoClick(
-                                                    owner,
-                                                    repo.name
-                                                )
-                                            }
-                                        )
-                                    }
-                                }
+                            item(
+                                key = "search_empty",
+                                contentType = "empty_state"
+                            ) {
+                                EmptyStateView(
+                                    icon = Icons.Outlined.Search,
+                                    title = "Search GitHub",
+                                    description =
+                                        "Search across public & private repositories, " +
+                                        "developers, source code, and issues worldwide."
+                                )
                             }
                         }
+                    }
 
-                        SearchTab.USERS -> {
+                    else -> {
 
-                            if (userResults.isEmpty()) {
+                        when (selectedTab) {
 
-                                EmptyStateView(
-                                    icon = Icons.Outlined.PersonOff,
-                                    title = "No Users",
-                                    description =
-                                        "No users found for \"$searchQuery\"."
-                                )
+                            SearchTab.REPOS -> {
 
-                            } else {
-
-                                LazyColumn(
-                                    modifier = Modifier.fillMaxSize(),
-
-                                    contentPadding = PaddingValues(
-                                        bottom = 100.dp
+                                if (repoResults.isEmpty()) {
+                                    EmptyStateView(
+                                        icon = Icons.Outlined.SearchOff,
+                                        title = "No Repositories",
+                                        description =
+                                            "No repositories found for \"$searchQuery\"."
                                     )
-                                ) {
-                                    items(
-                                        userResults,
-                                        key = { it.id }
-                                    ) { user ->
+                                } else {
 
-                                        ListItem(
-                                            headlineContent = {
-                                                Text(
-                                                    text = user.login,
-                                                    fontWeight =
-                                                        FontWeight.SemiBold
-                                                )
-                                            },
+                                    LazyColumn(
+                                        modifier = Modifier.fillMaxSize(),
 
-                                            leadingContent = {
-                                                AsyncImage(
-                                                    model = user.avatar_url,
+                                        contentPadding = PaddingValues(
+                                            start = 16.dp,
+                                            end = 16.dp,
+                                            top = 12.dp,
+                                            bottom = 100.dp
+                                        ),
 
-                                                    contentDescription = null,
+                                        verticalArrangement =
+                                            Arrangement.spacedBy(10.dp)
+                                    ) {
+                                        items(
+                                            items = repoResults,
+                                            key = { it.id },
+                                            contentType = { "repository" }
+                                        ) { repo ->
 
-                                                    modifier = Modifier
-                                                        .size(44.dp)
-                                                        .clip(CircleShape)
-                                                )
-                                            },
+                                            RepositoryCard(
+                                                repo = repo,
 
-                                            trailingContent = {
-                                                Icon(
-                                                    imageVector =
-                                                        Icons.Outlined.ChevronRight,
-                                                    contentDescription = null
-                                                )
-                                            },
+                                                onClick = {
+                                                    val owner =
+                                                        repo.owner?.login ?: "user"
 
-                                            modifier = Modifier.clickable {
-                                                onUserClick(
-                                                    user.login
-                                                )
-                                            }
-                                        )
-
-                                        HorizontalDivider(
-                                            thickness = 0.5.dp
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        SearchTab.CODE -> {
-
-                            if (codeResults.isEmpty()) {
-
-                                EmptyStateView(
-                                    icon = Icons.Outlined.CodeOff,
-                                    title = "No Code Results",
-                                    description =
-                                        "No matching code found for \"$searchQuery\"."
-                                )
-
-                            } else {
-
-                                LazyColumn(
-                                    modifier = Modifier.fillMaxSize(),
-
-                                    contentPadding = PaddingValues(
-                                        bottom = 100.dp
-                                    )
-                                ) {
-                                    items(
-                                        codeResults,
-                                        key = {
-                                            it.sha + it.path
-                                        }
-                                    ) { item ->
-
-                                        ListItem(
-                                            headlineContent = {
-                                                Text(
-                                                    text = item.name,
-                                                    fontWeight =
-                                                        FontWeight.SemiBold
-                                                )
-                                            },
-
-                                            supportingContent = {
-                                                Text(
-                                                    text =
-                                                        "${item.repository.full_name} • ${item.path}",
-
-                                                    style =
-                                                        MaterialTheme
-                                                            .typography
-                                                            .bodySmall
-                                                )
-                                            },
-
-                                            leadingContent = {
-                                                Icon(
-                                                    imageVector =
-                                                        Icons.Outlined.Code,
-
-                                                    contentDescription = null,
-
-                                                    tint =
-                                                        MaterialTheme
-                                                            .colorScheme
-                                                            .primary
-                                                )
-                                            },
-
-                                            modifier = Modifier.clickable {
-
-                                                val parts =
-                                                    item.repository
-                                                        .full_name
-                                                        .split("/")
-
-                                                if (parts.size == 2) {
                                                     onRepoClick(
-                                                        parts[0],
-                                                        parts[1]
+                                                        owner,
+                                                        repo.name
                                                     )
                                                 }
-                                            }
-                                        )
-
-                                        HorizontalDivider(
-                                            thickness = 0.5.dp
-                                        )
+                                            )
+                                        }
                                     }
                                 }
                             }
-                        }
 
-                        SearchTab.ISSUES -> {
+                            SearchTab.USERS -> {
 
-                            if (issueResults.isEmpty()) {
-
-                                EmptyStateView(
-                                    icon = Icons.Outlined.HelpOutline,
-                                    title = "No Issues",
-                                    description =
-                                        "No issues found matching \"$searchQuery\"."
-                                )
-
-                            } else {
-
-                                LazyColumn(
-                                    modifier = Modifier.fillMaxSize(),
-
-                                    contentPadding = PaddingValues(
-                                        bottom = 100.dp
+                                if (userResults.isEmpty()) {
+                                    EmptyStateView(
+                                        icon = Icons.Outlined.PersonOff,
+                                        title = "No Users",
+                                        description =
+                                            "No users found for \"$searchQuery\"."
                                     )
-                                ) {
-                                    items(
-                                        issueResults,
-                                        key = { it.id }
-                                    ) { issue ->
+                                } else {
 
-                                        ListItem(
-                                            headlineContent = {
-                                                Text(
-                                                    text = issue.title,
-                                                    fontWeight =
-                                                        FontWeight.SemiBold
-                                                )
-                                            },
+                                    LazyColumn(
+                                        modifier = Modifier.fillMaxSize(),
 
-                                            supportingContent = {
-                                                Text(
-                                                    text =
-                                                        "#${issue.number} by ${issue.user?.login ?: "user"}",
-
-                                                    style =
-                                                        MaterialTheme
-                                                            .typography
-                                                            .bodySmall
-                                                )
-                                            },
-
-                                            leadingContent = {
-                                                Icon(
-                                                    imageVector =
-                                                        Icons.Outlined.Adjust,
-
-                                                    contentDescription = null,
-
-                                                    tint = Color(0xFF39D353)
-                                                )
-                                            }
+                                        contentPadding = PaddingValues(
+                                            bottom = 100.dp
                                         )
+                                    ) {
+                                        items(
+                                            items = userResults,
+                                            key = { it.id },
+                                            contentType = { "user" }
+                                        ) { user ->
 
-                                        HorizontalDivider(
-                                            thickness = 0.5.dp
+                                            ListItem(
+                                                headlineContent = {
+                                                    Text(
+                                                        text = user.login,
+                                                        fontWeight =
+                                                            FontWeight.SemiBold
+                                                    )
+                                                },
+
+                                                leadingContent = {
+                                                    AsyncImage(
+                                                        model = user.avatar_url,
+                                                        contentDescription = null,
+                                                        modifier = Modifier
+                                                            .size(44.dp)
+                                                            .clip(CircleShape)
+                                                    )
+                                                },
+
+                                                trailingContent = {
+                                                    Icon(
+                                                        imageVector =
+                                                            Icons.Outlined.ChevronRight,
+                                                        contentDescription = null
+                                                    )
+                                                },
+
+                                                modifier = Modifier.clickable {
+                                                    onUserClick(
+                                                        user.login
+                                                    )
+                                                }
+                                            )
+
+                                            HorizontalDivider(
+                                                thickness = 0.5.dp
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            SearchTab.CODE -> {
+
+                                if (codeResults.isEmpty()) {
+                                    EmptyStateView(
+                                        icon = Icons.Outlined.CodeOff,
+                                        title = "No Code Results",
+                                        description =
+                                            "No matching code found for \"$searchQuery\"."
+                                    )
+                                } else {
+
+                                    LazyColumn(
+                                        modifier = Modifier.fillMaxSize(),
+
+                                        contentPadding = PaddingValues(
+                                            bottom = 100.dp
                                         )
+                                    ) {
+                                        items(
+                                            items = codeResults,
+                                            key = {
+                                                "${it.sha}:${it.path}"
+                                            },
+                                            contentType = { "code" }
+                                        ) { item ->
+
+                                            ListItem(
+                                                headlineContent = {
+                                                    Text(
+                                                        text = item.name,
+                                                        fontWeight =
+                                                            FontWeight.SemiBold
+                                                    )
+                                                },
+
+                                                supportingContent = {
+                                                    Text(
+                                                        text =
+                                                            "${item.repository.full_name} • ${item.path}",
+                                                        style =
+                                                            MaterialTheme
+                                                                .typography
+                                                                .bodySmall
+                                                    )
+                                                },
+
+                                                leadingContent = {
+                                                    Icon(
+                                                        imageVector =
+                                                            Icons.Outlined.Code,
+                                                        contentDescription = null,
+                                                        tint =
+                                                            MaterialTheme
+                                                                .colorScheme
+                                                                .primary
+                                                    )
+                                                },
+
+                                                modifier = Modifier.clickable {
+
+                                                    val parts =
+                                                        item.repository
+                                                            .full_name
+                                                            .split("/", limit = 2)
+
+                                                    if (parts.size == 2) {
+                                                        onRepoClick(
+                                                            parts[0],
+                                                            parts[1]
+                                                        )
+                                                    }
+                                                }
+                                            )
+
+                                            HorizontalDivider(
+                                                thickness = 0.5.dp
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            SearchTab.ISSUES -> {
+
+                                if (issueResults.isEmpty()) {
+                                    EmptyStateView(
+                                        icon = Icons.Outlined.HelpOutline,
+                                        title = "No Issues",
+                                        description =
+                                            "No issues found matching \"$searchQuery\"."
+                                    )
+                                } else {
+
+                                    LazyColumn(
+                                        modifier = Modifier.fillMaxSize(),
+
+                                        contentPadding = PaddingValues(
+                                            bottom = 100.dp
+                                        )
+                                    ) {
+                                        items(
+                                            items = issueResults,
+                                            key = { it.id },
+                                            contentType = { "issue" }
+                                        ) { issue ->
+
+                                            ListItem(
+                                                headlineContent = {
+                                                    Text(
+                                                        text = issue.title,
+                                                        fontWeight =
+                                                            FontWeight.SemiBold
+                                                    )
+                                                },
+
+                                                supportingContent = {
+                                                    Text(
+                                                        text =
+                                                            "#${issue.number} by ${issue.user?.login ?: "user"}",
+                                                        style =
+                                                            MaterialTheme
+                                                                .typography
+                                                                .bodySmall
+                                                    )
+                                                },
+
+                                                leadingContent = {
+                                                    Icon(
+                                                        imageVector =
+                                                            Icons.Outlined.Adjust,
+                                                        contentDescription = null,
+                                                        tint = Color(0xFF39D353)
+                                                    )
+                                                }
+                                            )
+
+                                            HorizontalDivider(
+                                                thickness = 0.5.dp
+                                            )
+                                        }
                                     }
                                 }
                             }
