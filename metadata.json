@@ -1,0 +1,6 @@
+{
+  "name": "Prime Repo Manager",
+  "description": "A production-grade native GitHub repository manager for Android with secure token authentication, code browsing, commit history, issue & PR tracking, and repository management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
