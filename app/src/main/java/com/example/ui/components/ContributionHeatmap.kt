@@ -19,11 +19,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.theme.*
-import java.util.*
 import kotlin.random.Random
 
 data class HeatmapCell(
-    val dayOfWeek: Int, // 0 = Sun .. 6 = Sat
+    val dayOfWeek: Int,
     val weekIndex: Int,
     val count: Int,
     val dateLabel: String
@@ -36,38 +35,65 @@ fun ContributionHeatmap(
     userSeed: String = "user"
 ) {
     val isDark = isSystemInDarkTheme()
-    var selectedCell by remember { mutableStateOf<HeatmapCell?>(null) }
-    var showInfoDialog by remember { mutableStateOf(false) }
 
-    // Generate deterministic 20 weeks x 7 days data seeded from user's login & stats
+    var selectedCell by remember {
+        mutableStateOf<HeatmapCell?>(null)
+    }
+
+    var showInfoDialog by remember {
+        mutableStateOf(false)
+    }
+
     val weeksCount = 22
     val daysCount = 7
-    val random = remember(userSeed) { Random(userSeed.hashCode()) }
 
+    /*
+     * Generate the data only when userSeed changes.
+     * The previous implementation searched the entire list
+     * for every cell while composing. This version uses the
+     * direct index instead.
+     */
     val cells = remember(userSeed) {
-        val list = mutableListOf<HeatmapCell>()
-        for (w in 0 until weeksCount) {
-            for (d in 0 until daysCount) {
-                // Bias towards some active days
+        val random = Random(userSeed.hashCode())
+        val list = ArrayList<HeatmapCell>(weeksCount * daysCount)
+
+        for (week in 0 until weeksCount) {
+            for (day in 0 until daysCount) {
+
                 val chance = random.nextFloat()
+
                 val count = when {
                     chance > 0.85f -> random.nextInt(4, 9)
                     chance > 0.65f -> random.nextInt(2, 4)
                     chance > 0.45f -> 1
                     else -> 0
                 }
+
+                val dayName = when (day) {
+                    0 -> "Sun"
+                    1 -> "Mon"
+                    2 -> "Tue"
+                    3 -> "Wed"
+                    4 -> "Thu"
+                    5 -> "Fri"
+                    else -> "Sat"
+                }
+
                 list.add(
                     HeatmapCell(
-                        dayOfWeek = d,
-                        weekIndex = w,
+                        dayOfWeek = day,
+                        weekIndex = week,
                         count = count,
-                        dateLabel = "Week ${w + 1}, Day ${listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")[d]}"
+                        dateLabel = "Week ${week + 1}, Day $dayName"
                     )
                 )
             }
         }
+
         list
     }
+
+    val scrollState = rememberScrollState()
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -77,29 +103,44 @@ fun ContributionHeatmap(
         ),
         border = CardDefaults.outlinedCardBorder()
     ) {
+
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
+
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+
                     Text(
                         text = "Activity Approximation",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )
+
+                    Spacer(
+                        modifier = Modifier.height(2.dp)
+                    )
+
                     Text(
                         text = "Commit & event activity across accessible repos",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2
                     )
                 }
+
                 IconButton(
-                    onClick = { showInfoDialog = true },
+                    onClick = {
+                        showInfoDialog = true
+                    },
                     modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
@@ -111,102 +152,206 @@ fun ContributionHeatmap(
                 }
             }
 
-            // Scrollable Grid
-            val scrollState = rememberScrollState()
-            LaunchedEffect(Unit) {
-                scrollState.scrollTo(scrollState.maxValue)
-            }
-
+            /*
+             * Horizontal contribution grid.
+             *
+             * Direct indexing:
+             * index = week * daysCount + day
+             *
+             * This avoids:
+             * cells.find { ... }
+             *
+             * for every rendered cell.
+             */
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .horizontalScroll(scrollState),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                for (w in 0 until weeksCount) {
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        for (d in 0 until daysCount) {
-                            val cell = cells.find { it.weekIndex == w && it.dayOfWeek == d }
-                            val count = cell?.count ?: 0
-                            val color = when {
-                                count == 0 -> if (isDark) HeatmapLevel0Dark else HeatmapLevel0Light
-                                count == 1 -> if (isDark) HeatmapLevel1Dark else HeatmapLevel1Light
-                                count in 2..3 -> if (isDark) HeatmapLevel2Dark else HeatmapLevel2Light
-                                count in 4..6 -> if (isDark) HeatmapLevel3Dark else HeatmapLevel3Light
-                                else -> if (isDark) HeatmapLevel4Dark else HeatmapLevel4Light
+
+                for (week in 0 until weeksCount) {
+
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+
+                        for (day in 0 until daysCount) {
+
+                            val cellIndex =
+                                week * daysCount + day
+
+                            val cell = cells[cellIndex]
+
+                            val cellColor = when {
+                                cell.count == 0 -> {
+                                    if (isDark) {
+                                        HeatmapLevel0Dark
+                                    } else {
+                                        HeatmapLevel0Light
+                                    }
+                                }
+
+                                cell.count == 1 -> {
+                                    if (isDark) {
+                                        HeatmapLevel1Dark
+                                    } else {
+                                        HeatmapLevel1Light
+                                    }
+                                }
+
+                                cell.count in 2..3 -> {
+                                    if (isDark) {
+                                        HeatmapLevel2Dark
+                                    } else {
+                                        HeatmapLevel2Light
+                                    }
+                                }
+
+                                cell.count in 4..6 -> {
+                                    if (isDark) {
+                                        HeatmapLevel3Dark
+                                    } else {
+                                        HeatmapLevel3Light
+                                    }
+                                }
+
+                                else -> {
+                                    if (isDark) {
+                                        HeatmapLevel4Dark
+                                    } else {
+                                        HeatmapLevel4Light
+                                    }
+                                }
                             }
 
                             Box(
                                 modifier = Modifier
                                     .size(12.dp)
-                                    .clip(RoundedCornerShape(2.dp))
-                                    .background(color)
-                                    .clickable { selectedCell = cell }
+                                    .clip(
+                                        RoundedCornerShape(2.dp)
+                                    )
+                                    .background(cellColor)
+                                    .clickable {
+                                        selectedCell = cell
+                                    }
                             )
                         }
                     }
                 }
             }
 
-            // Selected cell label or legend
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+
                 if (selectedCell != null) {
+
                     Text(
-                        text = "${selectedCell?.count} contributions on ${selectedCell?.dateLabel}",
+                        text = buildString {
+                            append(selectedCell!!.count)
+                            append(" contributions on ")
+                            append(selectedCell!!.dateLabel)
+                        },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 2,
+                        modifier = Modifier.weight(1f)
                     )
+
                 } else {
+
                     Text(
                         text = "~$totalCommitsEstimate contributions in tracked history",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        modifier = Modifier.weight(1f)
                     )
                 }
 
-                // Legend
+                Spacer(
+                    modifier = Modifier.width(8.dp)
+                )
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(3.dp)
                 ) {
-                    Text("Less", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    listOf(
-                        if (isDark) HeatmapLevel0Dark else HeatmapLevel0Light,
-                        if (isDark) HeatmapLevel1Dark else HeatmapLevel1Light,
-                        if (isDark) HeatmapLevel2Dark else HeatmapLevel2Light,
-                        if (isDark) HeatmapLevel3Dark else HeatmapLevel3Light,
-                        if (isDark) HeatmapLevel4Dark else HeatmapLevel4Light
-                    ).forEach { col ->
+
+                    Text(
+                        text = "Less",
+                        fontSize = 10.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    val legendColors = if (isDark) {
+                        listOf(
+                            HeatmapLevel0Dark,
+                            HeatmapLevel1Dark,
+                            HeatmapLevel2Dark,
+                            HeatmapLevel3Dark,
+                            HeatmapLevel4Dark
+                        )
+                    } else {
+                        listOf(
+                            HeatmapLevel0Light,
+                            HeatmapLevel1Light,
+                            HeatmapLevel2Light,
+                            HeatmapLevel3Light,
+                            HeatmapLevel4Light
+                        )
+                    }
+
+                    legendColors.forEach { color ->
+
                         Box(
                             modifier = Modifier
                                 .size(9.dp)
-                                .clip(RoundedCornerShape(2.dp))
-                                .background(col)
+                                .clip(
+                                    RoundedCornerShape(2.dp)
+                                )
+                                .background(color)
                         )
                     }
-                    Text("More", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+                    Text(
+                        text = "More",
+                        fontSize = 10.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }
     }
 
     if (showInfoDialog) {
+
         AlertDialog(
-            onDismissRequest = { showInfoDialog = false },
-            title = { Text("About This Heatmap") },
+            onDismissRequest = {
+                showInfoDialog = false
+            },
+
+            title = {
+                Text("About This Heatmap")
+            },
+
             text = {
                 Text(
-                    "The GitHub REST API does not provide the official GraphQL contribution calendar directly through standard user endpoints. This graph provides a clearly labeled approximation generated from user repository push events, commits, and activity data.",
+                    text = "The GitHub REST API does not provide the official GraphQL contribution calendar directly through standard user endpoints. This graph provides a clearly labeled approximation generated from user repository push events, commits, and activity data.",
                     style = MaterialTheme.typography.bodyMedium
                 )
             },
+
             confirmButton = {
-                TextButton(onClick = { showInfoDialog = false }) {
+                TextButton(
+                    onClick = {
+                        showInfoDialog = false
+                    }
+                ) {
                     Text("Got It")
                 }
             }
