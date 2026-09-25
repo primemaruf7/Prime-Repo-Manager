@@ -33,7 +33,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '9.3.1'
+          gradle-version: '9.0.0'
 
       - name: Show Gradle version
         run: gradle --version
@@ -63,10 +63,12 @@ jobs:
           ls -lh debug.keystore
 
       - name: Clean project
-        run: gradle clean --no-daemon
+        run: |
+          gradle clean --no-daemon
 
       - name: Build Debug APK
-        run: gradle assembleDebug --no-daemon --stacktrace
+        run: |
+          gradle assembleDebug --no-daemon --stacktrace
 
       - name: Verify APK
         run: |
